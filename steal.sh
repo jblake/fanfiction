@@ -26,13 +26,11 @@ fi
 
 declare -a CHAPTERS
 
-META="$(tempfile -p ff_ -s .meta)"
 EPUB="$(tempfile -p ff_ -s .epub)"
-LRF="$(tempfile -p ff_ -s .lrf)"
 
 function cleanTemps () {
   echo "Cleaning up..."
-  rm -f "${CHAPTERS[@]}" "${META}" "${EPUB}" "${LRF}"
+  rm -f "${CHAPTERS[@]}" "${EPUB}"
 }
 
 trap cleanTemps EXIT
@@ -71,27 +69,18 @@ echo "This is ${TITLE} by ${AUTHOR}."
 MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
 echo "I'm calling it ${MTITLE}."
 
-if "${FORCE}" || [ ! -e "/media/reader/fanfiction/${MTITLE}.lrf" ]; then
+if "${FORCE}" || [ ! -e "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ]; then
 
   echo -n "Fetching remaining chapters... "
   getAllChapters
   echo
 
-  cat <<END > "${META}"
-<dc:creator>${AUTHOR}</dc:creator>
-<dc:title>${TITLE}</dc:title>
-END
+  echo "Building EPUB..."
+  ./mkepub.sh "${EPUB}" "${STORY}" "${TITLE}" "${AUTHOR}" "${CHAPTERS[@]}"
 
-  echo "Converting to EPUB using pandoc..."
-  pandoc -f html -t epub -o "${EPUB}" --epub-metadata "${META}" "${CHAPTERS[@]}"
-
-  echo "Converting to LRF using ebook-convert..."
-  ebook-convert "${EPUB}" "${LRF}" > /dev/null
-
-  echo "Copying to reader using ebook-device..."
-  mkdir -p /media/reader/fanfiction
-  rm -f "/media/reader/fanfiction/${MTITLE}.lrf"
-  ebook-device cp "${LRF}" "prs500:/fanfiction/${MTITLE}.lrf"
+  echo "Copying to reader..."
+  mkdir -p "/media/nook/My Files/Books/fanfiction"
+  cp "${EPUB}" "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub"
 
   echo "Success!"
 
