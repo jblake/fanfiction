@@ -147,6 +147,8 @@ END
 
 ( cd "${RAW}.src"; zip "${RAW}" -r -q META-INF OPS )
 
-echo "  Post-processing with ebook-convert..."
+#echo "  Post-processing with ebook-convert..."
+#
+#ebook-convert "${RAW}" "${EPUB}" > /dev/null
 
-ebook-convert "${RAW}" "${EPUB}" > /dev/null
+mv "${RAW}" "${EPUB}"
