@@ -65,11 +65,14 @@ echo
 
 TITLE="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/')"
 AUTHOR="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/')"
-echo "This is ${TITLE} by ${AUTHOR}."
+DATE="$(date -d "$(grep Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
+echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
 MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
 echo "I'm calling it ${MTITLE}."
 
-if "${FORCE}" || [ ! -e "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ]; then
+touch -d "${DATE}" "${CHAPTERS[0]}"
+
+if "${FORCE}" || [ ! -e "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ]; then
 
   echo -n "Fetching remaining chapters... "
   getAllChapters
@@ -81,6 +84,8 @@ if "${FORCE}" || [ ! -e "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ]
   echo "Copying to reader..."
   mkdir -p "/media/nook/My Files/Books/fanfiction"
   cp "${EPUB}" "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub"
+
+  touch -d "${DATE}" "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub"
 
   echo "Success!"
 

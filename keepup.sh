@@ -5,4 +5,8 @@ for STORY in $(cat STORIES); do
   echo
 done
 
+ls -hl  "/media/nook/My Files/Books/fanfiction" > index-name
+ls -hlS "/media/nook/My Files/Books/fanfiction" > index-size
+ls -hlt "/media/nook/My Files/Books/fanfiction" > index-date
+
 beep

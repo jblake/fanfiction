@@ -93,6 +93,12 @@ while [ "$#" -gt 0 ]; do
   <head>
     <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=iso-8859-1" />
     <title>${TITLE}</title>
+    <style type="text/css">
+      p {
+        text-align: justify;
+        text-justify: newspaper;
+      }
+    </style>
   </head>
   <body>
 
