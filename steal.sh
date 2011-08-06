@@ -72,7 +72,7 @@ echo "I'm calling it ${MTITLE}."
 
 touch -d "${DATE}" "${CHAPTERS[0]}"
 
-if "${FORCE}" || [ ! -e "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ]; then
+if "${FORCE}" || [ ! -e "import/fanfiction/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/fanfiction/${MTITLE}.epub" ]; then
 
   echo -n "Fetching remaining chapters... "
   getAllChapters
@@ -82,10 +82,10 @@ if "${FORCE}" || [ ! -e "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub" ]
   ./mkepub.sh "${EPUB}" "${STORY}" "${TITLE}" "${AUTHOR}" "${CHAPTERS[@]}"
 
   echo "Copying to reader..."
-  mkdir -p "/media/nook/My Files/Books/fanfiction"
-  cp "${EPUB}" "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub"
+  mkdir -p "import/fanfiction"
+  cp "${EPUB}" "import/fanfiction/${MTITLE}.epub"
 
-  touch -d "${DATE}" "/media/nook/My Files/Books/fanfiction/${MTITLE}.epub"
+  touch -d "${DATE}" "import/fanfiction/${MTITLE}.epub"
 
   echo "Success!"
 

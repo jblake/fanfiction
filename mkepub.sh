@@ -104,6 +104,12 @@ while [ "$#" -gt 0 ]; do
 
 END
 
+  if grep -Eq "^Chapter ${CHAPTERS}:[^<]+<br></div>" "$1"; then
+    CHAPTITLE="$(grep -E "^Chapter ${CHAPTERS}:[^<]+<br></div>" "$1" | perl -pne 's/<br>.+//')"
+  else
+    CHAPTITLE="Chapter ${CHAPTERS}"
+  fi
+
   ./html2xhtml <(iconv -f utf-8 -t iso-8859-1//translit -c "$1") >> "${RAW}.src/OPS/chapter${CHAPTERS}.xhtml"
 
   cat >> "${RAW}.src/OPS/chapter${CHAPTERS}.xhtml" <<END
@@ -118,7 +124,7 @@ END
 
   cat >> "${RAW}.src/OPS/book.ncx" <<END
     <navPoint class="chapter" id="chapter${CHAPTERS}" playOrder="${CHAPTERS}">
-      <navLabel><text>Chapter ${CHAPTERS}</text></navLabel>
+      <navLabel><text>${CHAPTITLE}</text></navLabel>
       <content src="chapter${CHAPTERS}.xhtml" />
     </navPoint>
 END
