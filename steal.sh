@@ -66,29 +66,36 @@ echo
 TITLE="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/')"
 AUTHOR="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/')"
 DATE="$(date -d "$(grep Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
-echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
-MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
-echo "I'm calling it ${MTITLE}."
 
-touch -d "${DATE}" "${CHAPTERS[0]}"
-
-if "${FORCE}" || [ ! -e "import/fanfiction/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/fanfiction/${MTITLE}.epub" ]; then
-
-  echo -n "Fetching remaining chapters... "
-  getAllChapters
-  echo
-
-  echo "Building EPUB..."
-  ./mkepub.sh "${EPUB}" "${STORY}" "${TITLE}" "${AUTHOR}" "${CHAPTERS[@]}"
-
-  echo "Copying to reader..."
-  mkdir -p "import/fanfiction"
-  cp "${EPUB}" "import/fanfiction/${MTITLE}.epub"
-
-  touch -d "${DATE}" "import/fanfiction/${MTITLE}.epub"
-
-  echo "Success!"
-
+if [ "${TITLE}" == "" ]; then
+  echo "This story doesn't appear to exist!"
 else
-  echo "Already on reader."
+
+  echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
+  MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
+  echo "I'm calling it ${MTITLE}."
+
+  touch -d "${DATE}" "${CHAPTERS[0]}"
+
+  if "${FORCE}" || [ ! -e "import/fanfiction/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/fanfiction/${MTITLE}.epub" ]; then
+
+    echo -n "Fetching remaining chapters... "
+    getAllChapters
+    echo
+
+    echo "Building EPUB..."
+    ./mkepub.sh "${EPUB}" "${STORY}" "${TITLE}" "${AUTHOR}" "${CHAPTERS[@]}"
+
+    echo "Copying to reader..."
+    mkdir -p "import/fanfiction"
+    cp "${EPUB}" "import/fanfiction/${MTITLE}.epub"
+
+    touch -d "${DATE}" "import/fanfiction/${MTITLE}.epub"
+
+    echo "Success!"
+
+  else
+    echo "Already on reader."
+  fi
+
 fi
