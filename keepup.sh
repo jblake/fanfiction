@@ -8,8 +8,8 @@ for STORY in $(cat STORIES); do
   echo
 done
 
-ls -hl  "import/fanfiction" > index-name
-ls -hlS "import/fanfiction" > index-size
-ls -hlt "import/fanfiction" > index-date
+find "import/fanfiction" -type f -printf '%P\n' | sort > index-name
+find "import/fanfiction" -type f -printf '%s %P\n' | sort -nr > index-size
+find "import/fanfiction" -type f -printf '%TY-%Tm-%Td %P\n' | sort -r > index-date
 
 beep
