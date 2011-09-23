@@ -28,7 +28,7 @@ echo "application/epub+zip" > "${RAW}.src/mimetype"
 
 rm -f "${RAW}"
 
-( cd "${RAW}.src"; zip "${RAW}" -Z store -q mimetype )
+( cd "${RAW}.src"; zip "${RAW}" -Z store -q -X0 mimetype )
 
 mkdir "${RAW}.src/META-INF"
 mkdir "${RAW}.src/OPS"
@@ -78,6 +78,8 @@ cat > "${RAW}.src/OPS/book.ncx" <<END
   <navMap>
 END
 
+echo -n "  Walking chapters... "
+
 CHAPTERS="0"
 
 while [ "$#" -gt 0 ]; do
@@ -104,10 +106,12 @@ while [ "$#" -gt 0 ]; do
 
 END
 
-  if grep -Eq "^Chapter ${CHAPTERS}:[^<]+<br></div>" "$1"; then
+  if grep -Eq "^Chapter.*id=storycontent class=storycontent>" "$1"; then
     CHAPTITLE="$(grep -E "^[^<]+<.*id=storycontent class=storycontent>" "$1" | perl -pne 's/<.+//')"
+    echo -n "."
   else
     CHAPTITLE="Chapter ${CHAPTERS}"
+    echo -n "?"
   fi
 
   ./html2xhtml <(iconv -f utf-8 -t iso-8859-1//translit -c "$1") >> "${RAW}.src/OPS/chapter${CHAPTERS}.xhtml"
@@ -132,6 +136,8 @@ END
   shift 1
 
 done
+
+echo
 
 cat >> "${RAW}.src/OPS/book.opf" <<END
   </manifest>
