@@ -65,14 +65,20 @@ echo
 
 TITLE="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/')"
 AUTHOR="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/')"
+SHIP="$(grep 'Rated: ' "${CHAPTERS[0]}" | perl -pne 'if ( /,  ([^,]+),/ ) { $_ = $1 } else { $_ = "none" }')"
 DATE="$(date -d "$(grep Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
 
 if [ "${TITLE}" == "" ]; then
-  echo "This story doesn't appear to exist!"
+  echo "This story (${STORY}) doesn't appear to exist!"
 else
 
-  echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
+  echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}, shipping ${SHIP}."
   MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
+  if [ "${SHIP}" != "none" ]; then
+    MSHIP="$(echo "${SHIP}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')"
+    mkdir -p "import/fanfiction/${MSHIP}"
+    MTITLE="${MSHIP}/${MTITLE}"
+  fi
   echo "I'm calling it ${MTITLE}."
 
   touch -d "${DATE}" "${CHAPTERS[0]}"
