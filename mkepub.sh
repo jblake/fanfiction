@@ -107,7 +107,7 @@ while [ "$#" -gt 0 ]; do
 END
 
   if grep -Eq "^Chapter.*id=storycontent class=storycontent>" "$1"; then
-    CHAPTITLE="$(grep -E "^[^<]+<.*id=storycontent class=storycontent>" "$1" | perl -pne 's/<.+//')"
+    CHAPTITLE="$(grep -E "^[^<]+<.*id=storycontent class=storycontent>" "$1" | perl -pne 's/<.+//; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
     echo -n "."
   else
     CHAPTITLE="Chapter ${CHAPTERS}"
