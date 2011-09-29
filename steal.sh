@@ -98,6 +98,8 @@ else
 
     touch -d "${DATE}" "import/fanfiction/${MTITLE}.epub"
 
+    echo "${MTITLE}" >> index-new
+
     echo "Success!"
 
   else
