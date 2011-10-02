@@ -14,4 +14,6 @@ find "import/fanfiction" -type f -printf '%P\n' | sort > index-name
 find "import/fanfiction" -type f -printf '%s %P\n' | sort -nr > index-size
 find "import/fanfiction" -type f -printf '%TY-%Tm-%Td %P\n' | sort -r > index-date
 
+cat index-new
+
 beep
