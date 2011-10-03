@@ -52,7 +52,7 @@ function getOneChapter () {
 
 function getAllChapters () {
 
-  if grep -q '>Next &#187;</a>' "${TEMP}"; then
+  if grep -m1 -q '>Next &#187;</a>' "${TEMP}"; then
     getOneChapter "$((${CHAPTER} + 1))"
     getAllChapters
   fi
@@ -63,10 +63,10 @@ echo -n "Fetching first chapter... "
 getOneChapter 1
 echo
 
-TITLE="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/')"
-AUTHOR="$(grep 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/')"
-SHIP="$(grep 'Rated: ' "${CHAPTERS[0]}" | perl -pne 'if ( /,  ([^,]+),/ ) { $_ = $1 } else { $_ = "none" }')"
-DATE="$(date -d "$(grep Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
+TITLE="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/')"
+AUTHOR="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/')"
+SHIP="$(grep -m1 'Rated: ' "${CHAPTERS[0]}" | perl -pne 'if ( /,  ([^,]+),/ ) { $_ = $1 } else { $_ = "none" }')"
+DATE="$(date -d "$(grep -m1 Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
 
 if [ "${TITLE}" == "" ]; then
   echo "This story (${STORY}) doesn't appear to exist!"
