@@ -59,12 +59,12 @@ function getAllChapters () {
 
 }
 
-echo -n "Fetching first chapter... "
+echo -n "${STORY}: Fetching first chapter... "
 getOneChapter 1
 echo
 
-TITLE="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/')"
-AUTHOR="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/')"
+TITLE="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
+AUTHOR="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
 SHIP="$(grep -m1 'Rated: ' "${CHAPTERS[0]}" | perl -pne 'if ( /,  ([^,]+),/ ) { $_ = $1 } else { $_ = "none" }')"
 DATE="$(date -d "$(grep -m1 Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
 
