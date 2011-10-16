@@ -85,6 +85,8 @@ else
 
   if "${FORCE}" || [ ! -e "import/fanfiction/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/fanfiction/${MTITLE}.epub" ]; then
 
+    rm -f import/fanfiction/*_"${STORY}".epub import/fanfiction/*/*_"${STORY}".epub
+
     echo -n "Fetching remaining chapters... "
     getAllChapters
     echo
