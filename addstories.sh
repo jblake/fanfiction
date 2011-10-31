@@ -23,6 +23,10 @@ while [ $# -gt 0 ]; do
 
   SHIPTAGS="$(grep -m1 'Rated: ' "${PAGE}" | perl -pne 'if ( /,  ([^,]+),/ ) { $_ = $1; y/A-Z/a-z/; @tags = split( /&/ ); foreach ( @tags ) { s/[^a-zA-Z0-9]+/_/g; s/^_+|_+$//g }; $_ = join( ", ", @tags ) } else { $_ = "noship" }')"
 
+  if grep -q 'script-attribute-c.png' "${PAGE}"; then
+    SHIPTAGS="${SHIPTAGS}, complete"
+  fi
+
   echo "${SHIPTAGS}"
   echo "${STORY}: ${SHIPTAGS}" >> STORIES
 
