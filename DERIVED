@@ -1,0 +1,4 @@
+not_harry: !harry_p
+not_hermione: !hermione_g
+harmony: harry_p && hermione_g
+lunar_harmony: harmony && luna_l

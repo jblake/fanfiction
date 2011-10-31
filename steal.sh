@@ -65,27 +65,21 @@ echo
 
 TITLE="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
 AUTHOR="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
-SHIP="$(grep -m1 'Rated: ' "${CHAPTERS[0]}" | perl -pne 'if ( /,  ([^,]+),/ ) { $_ = $1 } else { $_ = "none" }')"
 DATE="$(date -d "$(grep -m1 Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
 
 if [ "${TITLE}" == "" ]; then
   echo "This story (${STORY}) doesn't appear to exist!"
 else
 
-  echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}, shipping ${SHIP}."
+  echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
   MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
-  if [ "${SHIP}" != "none" ]; then
-    MSHIP="$(echo "${SHIP}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')"
-    mkdir -p "import/fanfiction/${MSHIP}"
-    MTITLE="${MSHIP}/${MTITLE}"
-  fi
   echo "I'm calling it ${MTITLE}."
 
   touch -d "${DATE}" "${CHAPTERS[0]}"
 
-  if "${FORCE}" || [ ! -e "import/fanfiction/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/fanfiction/${MTITLE}.epub" ]; then
+  if "${FORCE}" || [ ! -e "import/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/${MTITLE}.epub" ]; then
 
-    rm -f import/fanfiction/*_"${STORY}".epub import/fanfiction/*/*_"${STORY}".epub
+    rm -f import/*_"${STORY}".epub
 
     echo -n "Fetching remaining chapters... "
     getAllChapters
@@ -95,12 +89,9 @@ else
     ./mkepub.sh "${EPUB}" "${STORY}" "${TITLE}" "${AUTHOR}" "${CHAPTERS[@]}"
 
     echo "Copying to reader..."
-    mkdir -p "import/fanfiction"
-    cp "${EPUB}" "import/fanfiction/${MTITLE}.epub"
+    cp "${EPUB}" "import/${MTITLE}.epub"
 
-    touch -d "${DATE}" "import/fanfiction/${MTITLE}.epub"
-
-    echo "${MTITLE}" >> index-new
+    touch -d "${DATE}" "import/${MTITLE}.epub"
 
     echo "Success!"
 

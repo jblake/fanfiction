@@ -1,505 +1,526 @@
-1151015
-1561758
-1594791
-1788976
-1834368
-1928871
-1954999
-2016398
-2125016
-2196609
-2275101
-2304853
-2390865
-2421314
-2463976
-2596747
-2636963
-2644810
-2680093
-2682799
-2707841
-2740505
-2744799
-2771223
-2772010
-2777448
-2784785
-2784825
-2786990
-2790545
-2827149
-2838918
-2841153
-2842132
-2866740
-2875916
-2886471
-2900435
-2919503
-2923721
-2926255
-2939305
-2948865
-2952245
-2959739
-2993199
-2994240
-3022004
-3054983
-3060774
-3127161
-3130695
-3150414
-3153194
-3160475
-3186836
-3186974
-3191147
-3195204
-3195738
-3216512
-3225125
-3226536
-3256344
-3281975
-3290886
-3326638
-3369112
-3383179
-3384712
-3399769
-3404017
-3408926
-3421129
-3441687
-3446796
-3456166
-3462605
-3464303
-3473224
-3475526
-3534595
-3535620
-3543720
-3546559
-3557725
-3565946
-3572996
-3592708
-3598345
-3609074
-3615871
-3617809
-3633815
-3639659
-3647050
-3653133
-3653812
-3658649
-3659703
-3661577
-3686323
-3693052
-3695087
-3704939
-3706661
-3736151
-3742388
-3750393
-3759227
-3763179
-3771102
-3772970
-3781358
-3785959
-3787073
-3802762
-3804253
-3804374
-3807777
-3815485
-3837862
-3842802
-3856581
-3857065
-3894793
-3902850
-3933832
-3951213
-3951749
-3958679
-3983128
-3994568
-4019373
-4019608
-4045539
-4061219
-4062601
-4062928
-4081016
-4111707
-4112329
-4122447
-4126590
-4133028
-4149894
-4165301
-4200568
-4226870
-4240771
-4242119
-4266901
-4272473
-4276947
-4292940
-4302068
-4314709
-4321881
-4334542
-4336686
-4340385
-4357909
-4359957
-4364926
-4390267
-4390285
-4410768
-4423362
-4448142
-4460065
-4482040
-4483046
-4494886
-4496813
-4539064
-4553008
-4564948
-4567822
-4581494
-4592892
-4594972
-4606270
-4612714
-4643123
-4645151
-4655545
-4670484
-4695051
-4702522
-4704873
-4710735
-4711743
-4712637
-4745329
-4757373
-4838865
-4887865
-4889754
-4902420
-4905771
-4912291
-4941725
-4960786
-4966520
-4967871
-4986849
-4993904
-4996078
-5010827
-5012016
-5043968
-5077573
-5078875
-5084287
-5087313
-5087570
-5091798
-5093897
-5094458
-5097276
-5129090
-5133535
-5136823
-5137013
-5137164
-5140198
-5149431
-5178251
-5199602
-5210983
-5244813
-5264830
-5265558
-5272778
-5273473
-5276974
-5278523
-5324299
-5331661
-5345583
-5353371
-5354812
-5356707
-5371322
-5371934
-5376784
-5385747
-5401782
-5402315
-5422914
-5425705
-5453054
-5455274
-5480014
-5483280
-5483723
-5490079
-5515009
-5546641
-5554780
-5594409
-5599903
-5602323
-5604382
-5626874
-5627314
-5639518
-5643463
-5664828
-5681042
-5683655
-5695544
-5702750
-5704993
-5721324
-5734840
-5737405
-5750894
-5758822
-5760361
-5778267
-5782077
-5782108
-5783428
-5797155
-5797650
-5815036
-5820125
-5821679
-5828091
-5835213
-5864749
-5866937
-5879470
-5879832
-5898228
-5901283
-5938788
-5962229
-5963803
-6004987
-6035532
-6051008
-6061030
-6074744
-6083910
-6100338
-6125705
-6128181
-6166192
-6174184
-6174426
-6193196
-6206646
-6234089
-6235562
-6238824
-6243892
-6250588
-6254783
-6275865
-6284221
-6293396
-6307032
-6326297
-6343296
-6367096
-6375811
-6386408
-6390868
-6422638
-6422882
-6425593
-6427995
-6435099
-6439871
-6448082
-6450474
-6466185
-6466479
-6469013
-6471922
-6500428
-6501264
-6506780
-6511737
-6517567
-6518287
-6531542
-6531776
-6542644
-6549023
-6581261
-6615909
-6624252
-6624958
-6633092
-6635363
-6640314
-6646839
-6655778
-6661047
-6667449
-6675025
-6685668
-6701152
-6717550
-6743330
-6747181
-6755363
-6757867
-6763981
-6764665
-6765623
-6770408
-6780275
-6783306
-6792050
-6800952
-6804662
-6810066
-6813863
-6816737
-6816741
-6831908
-6858747
-6863859
-6871185
-6888301
-6901137
-6906107
-6925222
-6925691
-6930111
-6935533
-6951053
-6952517
-6960435
-6963604
-6975743
-6983715
-6988568
-6992471
-6995114
-7009093
-7012933
-7016642
-7034993
-7036397
-7042286
-7046249
-7048475
-7048479
-7049068
-7056873
-7058158
-7062528
-7077261
-7093738
-7094576
-7100454
-7105604
-7116136
-7117104
-7120596
-7128869
-7130498
-7144149
-7150729
-7162532
-7172004
-7178874
-7180562
-7181421
-7184118
-7184989
-7205804
-7209160
-7223406
-7233892
-7244255
-7244857
-7257761
-7261904
-7272361
-7274298
-7276809
-7282059
-7283567
-7287393
-7287766
-7287922
-7290412
-7292932
-7296047
-7298945
-7299045
-7301151
-7305564
-7309863
-7312413
-7313512
-7316864
-7317019
-7318149
-7318880
-7318921
-7330591
-7337725
-7340635
-7341746
-7343173
-7344130
-7348455
-7349453
-7357628
-7364842
-7371659
-7379366
-7382549
-7392297
-7392700
-7393397
-7400004
-7402848
-7405296
-7413833
-7416481
-7426511
-7430617
-7433305
-7434293
-7440618
-7442838
-7444932
-7448381
-7451380
-7459766
-7460153
-7463850
-7468654
-7470334
-7471593
-7472143
-7474443
+1151015: harry_p, hermione_g
+1561758: harry_p, hermione_g
+1594791: harry_p, hermione_g
+1788976: harry_p, hermione_g
+1834368: harry_p
+1928871: harry_p, hermione_g
+1954999: harry_p, hermione_g
+2016398: harry_p, voldemort
+2125016: noship
+2196609: harry_p
+2275101: harry_p, hermione_g
+2304853: harry_p, hermione_g
+2390865: harry_p, luna_l
+2421314: harry_p, hermione_g
+2463976: harry_p, hermione_g
+2596747: harry_p
+2636963: ginny_w, harry_p
+2644810: harry_p
+2680093: fleur_d, harry_p
+2682799: harry_p
+2707841: harry_p, hermione_g
+2740505: harry_p
+2744799: harry_p
+2771223: harry_p, hermione_g
+2772010: harry_p
+2777448: noship
+2784785: harry_p
+2784825: harry_p, hermione_g
+2786990: harry_p, hermione_g
+2790545: harry_p
+2827149: harry_p, voldemort
+2838918: noship
+2841153: harry_p, hermione_g
+2842132: harry_p, hermione_g
+2866740: harry_p, hermione_g
+2875916: harry_p, hermione_g
+2886471: harry_p, hermione_g
+2900435: harry_p, hermione_g
+2900438: harry_p, hermione_g
+2919503: harry_p, luna_l
+2923721: harry_p, hermione_g
+2926255: harry_p, hermione_g
+2939305: harry_p, voldemort
+2948865: harry_p, hermione_g
+2952245: harry_p, luna_l
+2959739: harry_p, hermione_g
+2993199: harry_p, hermione_g
+2994240: harry_p, hermione_g
+3022004: harry_p
+3054983: harry_p, hermione_g
+3060774: harry_p, hermione_g
+3127161: harry_p
+3130695: harry_p, hermione_g
+3150414: harry_p, hermione_g
+3153194: harry_p, hermione_g
+3160475: harry_p, hermione_g
+3186836: harry_p, hermione_g
+3186974: harry_p, voldemort
+3191147: noship
+3195204: harry_p, hermione_g
+3195738: harry_p, hermione_g
+3216512: harry_p, hermione_g
+3225125: harry_p, hermione_g
+3226536: harry_p, luna_l
+3256344: harry_p, hermione_g
+3281975: harry_p, hermione_g
+3290886: harry_p, hermione_g
+3326638: harry_p, hermione_g
+3369112: harry_p
+3383179: harry_p, hermione_g
+3384712: fleur_d, harry_p
+3399769: harry_p
+3404017: harry_p, hermione_g
+3408926: harry_p
+3421129: harry_p, hermione_g
+3441687: harry_p, luna_l
+3446796: dudley_d, harry_p
+3456166: harry_p
+3462605: noship
+3464303: harry_p, n_tonks
+3473224: harry_p
+3475526: harry_p, hermione_g
+3534595: harry_p, hermione_g
+3535620: harry_p
+3543720: harry_p, hermione_g
+3546559: harry_p, luna_l
+3557725: harry_p
+3565946: harry_p, hermione_g
+3572996: noship
+3592708: harry_p
+3598345: hermione_g, padma_p
+3609074: harry_p
+3615871: harry_p
+3617809: harry_p, hermione_g
+3633815: harry_p
+3639659: humor, noship, year5
+3647050: harry_p, hermione_g
+3653133: noship
+3653812: harry_p, hermione_g
+3658649: noship
+3659703: harry_p, hermione_g
+3661577: harry_p
+3686323: harry_p, hermione_g
+3693052: harry_p
+3695087: harry_p, hermione_g
+3704939: harry_p, hermione_g
+3706661: harry_p, hermione_g
+3736151: harry_p, severus_s
+3742388: harry_p, hermione_g
+3750393: harry_p
+3759227: harry_p
+3763179: harry_p
+3771102: harry_p, sirius_b
+3772970: harry_p, luna_l
+3781358: harry_p, hermione_g
+3785959: harry_p, hermione_g
+3787073: harry_p, hermione_g
+3802762: harry_p
+3804253: harry_p, sirius_b
+3804374: harry_p
+3807777: harry_p, hermione_g
+3815485: harry_p, hermione_g
+3837862: harry_p, hermione_g
+3842802: harry_p, hermione_g
+3856581: harry_p
+3857065: harry_p, hermione_g
+3894793: harry_p, luna_l
+3902850: harry_p, hermione_g
+3933832: a_e_stark_tony, harry_p
+3951213: harry_p, hermione_g
+3951749: harry_p, hermione_g
+3958679: noship
+3983128: harry_p
+3994568: harry_p, hermione_g
+4019373: noship
+4019608: harry_p, hermione_g
+4045539: harry_p
+4061219: harry_p, hermione_g
+4062601: harry_p, sirius_b
+4062928: harry_p, luna_l
+4081016: harry_p
+4111707: harry_p
+4112329: harry_p, hermione_g
+4122447: harry_p, hermione_g
+4126590: harry_p, hermione_g
+4133028: harry_p
+4149894: aurora, harry_p
+4165301: harry_p
+4200568: harry_p, hermione_g
+4226870: harry_p
+4240771: harry_p
+4242119: harry_p, hermione_g
+4266901: harry_p, hermione_g
+4272473: harry_p, hermione_g
+4276947: harry_p, hermione_g
+4292940: harry_p, hermione_g
+4302068: harry_p
+4314709: harry_p
+4321881: harry_p, hermione_g
+4334542: daphne_g, harry_p
+4336686: harry_p, hermione_g
+4340385: harry_p, prof_vector
+4347535: harry_p, hermione_g
+4357909: harry_p, hermione_g
+4359957: harry_p
+4364926: harry_p, luna_l
+4390267: harry_p, susan_b
+4390285: harry_p
+4410768: daphne_g, harry_p
+4423362: harry_p, sirius_b
+4448142: harry_p, hermione_g
+4460065: harry_p
+4482040: harry_p, hermione_g
+4483046: harry_p, hermione_g
+4494886: harry_p, hermione_g
+4496813: harry_p, hermione_g
+4539064: harry_p, hermione_g
+4553008: harry_p, hermione_g
+4564948: harry_p, hermione_g
+4567822: harry_p, hermione_g
+4581494: harry_p, hermione_g
+4588641: harry_p
+4592892: harry_p, hermione_g
+4594972: harry_p, luna_l
+4606270: harry_p
+4612714: harry_p, hermione_g
+4643123: daphne_g, harry_p
+4645151: harry_p, severus_s
+4655545: noship
+4662080: harry_p, hermione_g
+4670484: albus_d, harry_p
+4695051: harry_p, hermione_g
+4702522: harry_p, hermione_g
+4704873: harry_p, hermione_g
+4710735: harry_p, tom_r_jr
+4711743: harry_p, hermione_g
+4712637: harry_p, hermione_g
+4745329: harry_p
+4757373: harry_p, luna_l
+4838865: harry_p, luna_l
+4887865: harry_p
+4889754: harry_p, hermione_g
+4902420: harry_p, parvati_p
+4905771: ginny_w, harry_p
+4912291: harry_p, severus_s
+4941725: noship
+4960786: harry_p, luna_l
+4966520: harry_p, sybill_t
+4967871: harry_p, hermione_g
+4986849: harry_p, hermione_g
+4993904: harry_p, hermione_g
+4996078: harry_p
+5010827: harry_p, hermione_g
+5012016: daphne_g, harry_p
+5043968: harry_p, hermione_g
+5077573: harry_p, luna_l
+5078875: harry_p, hermione_g
+5084287: harry_p, susan_b
+5087313: harry_p, hermione_g
+5087570: harry_p, hermione_g
+5091798: harry_p, hermione_g
+5093897: harry_p, hermione_g
+5094458: harry_p, hermione_g
+5097276: harry_p, hermione_g
+5121007: harry_p, hermione_g
+5129090: harry_p, hermione_g
+5133535: ginny_w, harry_p
+5136823: harry_p, hermione_g
+5137013: harry_p, hermione_g
+5137164: hermione_g
+5140198: harry_p, luna_l
+5149431: harry_p, hermione_g
+5178251: harry_p, hermione_g, prehogwarts, redo
+5199602: harry_p
+5210983: harry_p
+5244813: daphne_g, harry_p, year4
+5264830: harry_p, hermione_g
+5265558: harry_p, hermione_g
+5272778: harry_p, hermione_g
+5273473: harry_p, hermione_g
+5276974: harry_p
+5278523: harry_p
+5324299: harry_p
+5331661: harry_p, hermione_g
+5345583: harry_p
+5353371: harry_p
+5354812: harry_p
+5356707: harry_p, hermione_g
+5371322: harry_p, hermione_g
+5371934: harry_p, luna_l
+5376784: harry_p, hermione_g
+5385747: harry_p, hermione_g
+5401782: harry_p, hermione_g
+5402315: harry_p, hermione_g
+5422914: harry_p, hermione_g
+5425705: harry_p, hermione_g
+5453001: harry_p, hermione_g
+5453054: harry_p
+5455274: harry_p, hermione_g
+5480014: harry_p, hermione_g, prehogwarts, redo
+5483280: harry_p, hermione_g
+5483723: harry_p, hermione_g
+5490079: gabrielle_d, harry_p
+5515009: harry_p, hermione_g
+5546641: harry_p, hermione_g
+5554780: harry_p
+5594409: harry_p, hermione_g
+5599903: daphne_g, harry_p
+5602323: harry_p, hermione_g
+5604382: harry_p
+5626874: harry_p, hermione_g
+5627314: harry_p, hermione_g
+5639518: harry_p
+5643463: harry_p, hermione_g
+5664828: harry_p, hermione_g
+5681042: harry_p
+5683655: harry_p, hermione_g
+5695544: harry_p, hermione_g
+5702750: harry_p
+5704993: harry_p, hermione_g
+5721324: harry_p, hermione_g
+5734840: harry_p, hermione_g
+5737405: harry_p, hermione_g
+5750894: harry_p, hermione_g
+5758822: harry_p, hermione_g
+5760361: harry_p, hermione_g
+5778267: harry_p, hermione_g
+5782077: harry_p
+5782108: harry_p, hermione_g
+5783428: harry_p, hermione_g
+5797155: harry_p, hermione_g
+5797650: harry_p, luna_l
+5800983: hermione_g
+5815036: harry_p, hermione_g
+5820125: harry_p, hermione_g
+5821679: harry_p, hermione_g
+5828091: harry_p, hermione_g
+5831864: hermione_g, oc
+5835213: daphne_g, harry_p
+5864749: daphne_g, harry_p
+5866937: harry_p, n_tonks
+5879470: harry_p, hermione_g
+5879832: albus_d, harry_p
+5898228: harry_p, hermione_g
+5901283: harry_p, hermione_g
+5938788: harry_p, luna_l
+5962229: fleur_d, harry_p
+5963803: harry_p, hermione_g
+6004987: harry_p
+6035532: harry_p, hermione_g
+6051008: noship
+6061030: harry_p, hermione_g
+6074744: harry_p, hermione_g
+6083910: harry_p, luna_l
+6100338: picard
+6125705: harry_p, hermione_g
+6128181: harry_p, hermione_g
+6166192: harry_p
+6174184: harry_p, hermione_g
+6174426: fleur_d, harry_p
+6193196: harry_p, hermione_g
+6206646: harry_p, hermione_g
+6234089: harry_p
+6235562: harry_p, hermione_g
+6238824: harry_p
+6243892: harry_p, hermione_g
+6250588: harry_p, hermione_g
+6254783: harry_p
+6275865: remus_l
+6284221: harry_p, hermione_g
+6293396: harry_p, hermione_g
+6302059: harry_p
+6307032: harry_p, hermione_g
+6326297: fleur_d, harry_p
+6343296: harry_p, hermione_g
+6367096: harry_p, tom_r_jr
+6375811: harry_p, luna_l
+6386408: harry_p, hermione_g
+6390868: daphne_g, harry_p
+6422638: harry_p, hedwig
+6422882: harry_p, hermione_g
+6425593: harry_p, hermione_g
+6427995: harry_p
+6435099: harry_p, luna_l
+6439871: harry_p, hermione_g
+6448082: harry_p, hermione_g
+6450474: harry_p, susan_b
+6466185: harry_p
+6466479: harry_p, hermione_g
+6469013: harry_p, hermione_g
+6471922: harry_p, hermione_g
+6500428: harry_p, voldemort
+6501264: harry_p, hermione_g
+6506780: harry_p, hermione_g
+6511737: harry_p, hermione_g
+6517567: harry_p, hermione_g
+6518287: harry_p, sirius_b
+6531542: harry_p, hermione_g
+6531776: harry_p, hermione_g
+6542644: harry_p, hermione_g
+6549023: harry_p, hermione_g
+6581261: harry_p
+6615909: harry_p, hermione_g
+6624252: harry_p, hermione_g
+6624958: harry_p, hermione_g
+6633092: harry_p, susan_b
+6635363: gilderoy_l, harry_p
+6640314: harry_p, hermione_g
+6646839: harry_p, luna_l
+6655778: daphne_g, harry_p
+6661047: harry_p, hermione_g
+6667449: harry_p, hermione_g
+6675025: harry_p, hermione_g
+6685668: harry_p, hermione_g
+6701152: amelia_b, harry_p
+6717550: harry_p, hermione_g
+6735435: harry_p, hermione_g
+6743330: harry_p, hermione_g
+6747181: harry_p, hermione_g
+6755363: harry_p, hermione_g
+6757867: harry_p, hermione_g
+6763981: harry_p, hermione_g
+6764665: harry_p, n_tonks
+6765623: harry_p, hermione_g
+6770408: harry_p, hermione_g
+6780275: harry_p, james_p
+6783306: harry_p, katie_b
+6792050: harry_p, hermione_g
+6800952: noship
+6804662: harry_p
+6810066: harry_p, hermione_g
+6813863: harry_p, susan_sto_helit
+6816737: harry_p, hermione_g
+6816741: harry_p, hermione_g
+6831908: harry_p, hermione_g
+6848499: harry_p, hermione_g
+6858747: lily_evans_p, sirius_b
+6863859: harry_p, hermione_g
+6871185: harry_p, hermione_g
+6888301: harry_p, hermione_g
+6901137: harry_p, hermione_g
+6904147: harry_p, hermione_g
+6906107: harry_p, hermione_g
+6925222: harry_p, hermione_g
+6925691: harry_p, minerva_m
+6930111: harry_p, hermione_g
+6935533: harry_p, luna_l
+6947097: harry_p, hermione_g
+6951053: harry_p, hermione_g
+6952517: harry_p, luna_l
+6960435: harry_p, hermione_g
+6963604: harry_p, hermione_g
+6975743: harry_p, voldemort
+6983715: harry_p, hermione_g
+6988568: harry_p, oc
+6992471: harry_p
+6995114: harry_p
+7009093: harry_p, hermione_g
+7012933: harry_p, hermione_g
+7016642: harry_p, hermione_g
+7034993: harry_p
+7036397: harry_p, hermione_g
+7041628: noship
+7042286: harry_p, hermione_g
+7046249: harry_p, hermione_g
+7048475: daphne_g, harry_p
+7048479: harry_p, hermione_g
+7049068: harry_p, hermione_g
+7056873: harry_p, hermione_g
+7058158: ginny_w
+7062528: harry_p, hermione_g
+7077261: harry_p, hermione_g
+7093738: harry_p, hermione_g
+7094576: harry_p, hermione_g
+7100454: hermione_g
+7105604: harry_p, hermione_g
+7116136: harry_p, hermione_g
+7117104: harry_p, hermione_g
+7120596: harry_p, hermione_g
+7128869: harry_p, hermione_g
+7130498: harry_p, hermione_g
+7144149: harry_p, hermione_g
+7150729: harry_p, hermione_g
+7162532: harry_p, hermione_g
+7172004: harry_p, hermione_g
+7172319: harry_p, hermione_g
+7178874: harry_p, hermione_g
+7180562: hermione_g, the_master
+7181421: harry_p, hermione_g
+7184118: harry_p, hermione_g
+7184989: albus_d, harry_p
+7205804: harry_p, hermione_g
+7209160: harry_p, hermione_g
+7222033: harry_p, hermione_g
+7223406: harry_p
+7233892: harry_p, severus_s
+7244255: harry_p, hermione_g
+7244857: harry_p
+7257761: harry_p, hermione_g
+7261904: harry_p, hermione_g
+7272361: harry_p, hermione_g
+7274298: harry_p, tom_r_jr
+7276809: harry_p, hermione_g
+7282059: harry_p, hermione_g
+7283567: harry_p
+7287393: harry_p, hermione_g
+7287766: noship
+7287922: harry_p, hermione_g
+7290412: harry_p, hermione_g
+7292932: harry_p, m_kusanagi
+7296047: harry_p, hermione_g
+7298945: harry_p, hermione_g
+7299045: harry_p, hermione_g
+7301151: fleur_d, harry_p
+7305564: harry_p, hermione_g
+7309863: harry_p, hermione_g
+7312413: harry_p, hermione_g
+7313512: harry_p, hermione_g
+7316864: harry_p, hermione_g
+7317019: harry_p, hermione_g
+7318149: harry_p, hermione_g
+7318880: harry_p, hermione_g
+7318921: harry_p, hermione_g
+7330591: noship
+7337725: harry_p, hermione_g
+7340635: harry_p
+7341746: harry_p, hermione_g
+7343173: harry_p, hermione_g
+7344130: harry_p, hermione_g
+7348455: harry_p, hermione_g
+7349453: harry_p, hermione_g
+7357628: harry_p, luna_l
+7364842: harry_p, hermione_g
+7371659: harry_p, luna_l
+7379366: harry_p, hermione_g
+7382549: harry_p
+7392297: harry_p, hermione_g
+7392700: harry_p, hermione_g
+7393397: harry_p, hermione_g
+7400004: harry_p, n_tonks
+7402848: noship
+7405296: harry_p, hermione_g
+7413833: harry_p, hermione_g
+7416481: harry_p, hermione_g
+7426511: harry_p, hermione_g
+7430617: harry_p, hermione_g
+7433305: harry_p, hermione_g
+7434293: harry_p, luna_l
+7440618: harry_p, hermione_g
+7442838: harry_p, hermione_g
+7444932: harry_p, hermione_g
+7448381: harry_p, hermione_g
+7451380: harry_p, luna_l
+7459766: harry_p, hermione_g
+7460153: harry_p, luna_l
+7463850: harry_p, hermione_g
+7468654: harry_p, luna_l
+7470334: harry_p, hermione_g
+7471593: harry_p, hermione_g
+7472143: harry_p, hermione_g
+7474443: harry_p, hermione_g
+7485658: hermione_g, luna_l
+7498778: harry_p, hermione_g
+7502922: harry_p, hermione_g
+7504800: harry_p, hermione_g
+7510527: harry_p, luna_l
