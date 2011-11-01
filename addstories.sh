@@ -28,7 +28,7 @@ while [ $# -gt 0 ]; do
   fi
 
   echo "${SHIPTAGS}"
-  echo "${STORY}: ${SHIPTAGS}" >> STORIES
+  echo "${STORY}: ${SHIPTAGS}, unread" >> STORIES
 
   cleanTemps
   trap - EXIT

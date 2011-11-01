@@ -3,4 +3,3 @@ incomplete: !complete
 lunar_harmony: harmony && luna_l
 not_harry: !harry_p && !noship
 not_hermione: !hermione_g && !noship
-unread: !prehogwarts && !year1 && !year2 && !year3 && !year4 && !year5 && !year6 && !year7 && !posthogwarts
