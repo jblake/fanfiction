@@ -8,7 +8,7 @@ while [ $# -gt 0 ]; do
   while true; do
 
     grep "^${STORY}" STORIES
-    read -p "?> " PATCH
+    read -e -p "?> " PATCH
 
     if [ "${PATCH}" == "" ]; then
       break
