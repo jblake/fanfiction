@@ -81,6 +81,10 @@ else
 
     rm -f import/*_"${STORY}".epub
 
+    if grep -q 'script-attribute-c.png' "${CHAPTERS[0]}"; then
+      echo "${STORY}: +complete" >> STORIES.patch
+    fi
+
     echo -n "Fetching remaining chapters... "
     getAllChapters
     echo
