@@ -49,7 +49,7 @@ cat > "${RAW}.src/OPS/book.opf" <<END
 <package version="2.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="${BOOKID}">
 
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:title>${TITLE}</dc:title>
+    <dc:title>${TITLE} ${BOOKID}</dc:title>
     <dc:identifier id="BookId">${BOOKID}</dc:identifier>
     <dc:creator>${AUTHOR}</dc:creator>
   </metadata>
@@ -72,7 +72,7 @@ cat > "${RAW}.src/OPS/book.ncx" <<END
     <meta name="dtb:maxPageNumber" content="0" />
   </head>
 
-  <docTitle><text>${TITLE}</text></docTitle>
+  <docTitle><text>${TITLE} ${BOOKID}</text></docTitle>
   <docAuthor><text>${AUTHOR}</text></docAuthor>
 
   <navMap>
