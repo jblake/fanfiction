@@ -37,6 +37,8 @@ while [ $# -gt 0 ]; do
     cleanTemps
     trap - EXIT
 
+    ./steal.sh "${STORY}"
+
   fi
 
 done
