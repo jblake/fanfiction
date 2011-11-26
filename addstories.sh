@@ -6,7 +6,7 @@ export TMPDIR="${PWD}"
 
 while [ $# -gt 0 ]; do
 
-  STORY="$1"
+  STORY="$(perl -e '$ARGV[0] =~ s#^http://(m|www)\.fanfiction\.net/s/##; $ARGV[0] =~ s#/.*$##; print "$ARGV[0]\n";' "$1")"
   shift 1
 
   if grep -q "^${STORY}:" STORIES; then
