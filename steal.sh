@@ -59,48 +59,53 @@ function getAllChapters () {
 
 }
 
-echo -n "${STORY}: Fetching first chapter... "
-getOneChapter 1
-echo
-
-TITLE="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
-AUTHOR="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
-DATE="$(date -d "$(grep -m1 Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
-
-if [ "${TITLE}" == "" ]; then
-  echo "This story (${STORY}) doesn't appear to exist!"
+if egrep -q "^${STORY}:.* prune(,|$)" STORIES; then
+  echo "${STORY}: Pruned."
+  rm -f import/*_"${STORY}".epub
 else
 
-  echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
-  MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
-  echo "I'm calling it ${MTITLE}."
+  echo -n "${STORY}: Fetching first chapter... "
+  getOneChapter 1
+  echo
 
-  touch -d "${DATE}" "${CHAPTERS[0]}"
+  TITLE="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*<b>(.*?)<\/b>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
+  AUTHOR="$(grep -m1 'by <a href=' "${CHAPTERS[0]}" | perl -pne 's/.*>(.*?)<\/a>.*/$1/; s/&(?!(#[0-9]+;)|([a-z]+;))/&amp;/g')"
+  DATE="$(date -d "$(grep -m1 Rated: "${CHAPTERS[0]}" | perl -pne 's/.* (U|P):([^<]+?)<.*/$2/' | tr - /)")"
 
-  if "${FORCE}" || [ ! -e "import/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/${MTITLE}.epub" ]; then
+  if [ "${TITLE}" == "" ]; then
+    echo "This story (${STORY}) doesn't appear to exist!"
+  else
 
-    rm -f import/*_"${STORY}".epub
+    echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
+    MTITLE="$(echo "${TITLE}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_by_$(echo "${AUTHOR}" | perl -pne 's/[^a-zA-Z0-9]+/_/g' | perl -pne 's/(^_)|(_$)//g')_${STORY}"
+    echo "I'm calling it ${MTITLE}."
 
-    if grep -q 'script-attribute-c.png' "${CHAPTERS[0]}"; then
-      echo "${STORY}: +complete" >> STORIES.patch
+    touch -d "${DATE}" "${CHAPTERS[0]}"
+
+    if "${FORCE}" || [ ! -e "import/${MTITLE}.epub" ] || [ "${CHAPTERS[0]}" -nt "import/${MTITLE}.epub" ]; then
+
+      rm -f import/*_"${STORY}".epub
+
+      if grep -q 'script-attribute-c.png' "${CHAPTERS[0]}"; then
+        echo "${STORY}: +complete" >> STORIES.patch
+      fi
+
+      echo -n "Fetching remaining chapters... "
+      getAllChapters
+      echo
+
+      echo "Building EPUB..."
+      ./mkepub.sh "${EPUB}" "${STORY}" "${TITLE}" "${AUTHOR}" "${CHAPTERS[@]}"
+
+      echo "Copying to reader..."
+      cp "${EPUB}" "import/${MTITLE}.epub"
+
+      touch -d "${DATE}" "import/${MTITLE}.epub"
+
+      echo "Success!"
+
     fi
 
-    echo -n "Fetching remaining chapters... "
-    getAllChapters
-    echo
-
-    echo "Building EPUB..."
-    ./mkepub.sh "${EPUB}" "${STORY}" "${TITLE}" "${AUTHOR}" "${CHAPTERS[@]}"
-
-    echo "Copying to reader..."
-    cp "${EPUB}" "import/${MTITLE}.epub"
-
-    touch -d "${DATE}" "import/${MTITLE}.epub"
-
-    echo "Success!"
-
-  else
-    echo "Already on reader."
   fi
 
 fi
