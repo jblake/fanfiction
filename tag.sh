@@ -19,3 +19,5 @@ while [ $# -gt 0 ]; do
   done
 
 done
+
+git commit STORIES -m "Adding tags."

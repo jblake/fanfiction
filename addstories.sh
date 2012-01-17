@@ -44,3 +44,5 @@ while [ $# -gt 0 ]; do
 done
 
 tagcoll copy -g STORIES | sponge STORIES
+
+git commit STORIES -m "Adding stories."
