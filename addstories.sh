@@ -41,6 +41,8 @@ while [ $# -gt 0 ]; do
 
   fi
 
+  echo
+
 done
 
 tagcoll copy -g STORIES | sponge STORIES
