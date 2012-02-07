@@ -1,14 +1,15 @@
 #!/bin/bash
 
-while IFS=: read STORY TAGS; do
+while read STORY; do
   ./steal.sh "${STORY}" "$@"
   echo
-done < STORIES
+done <( sqlite3 /srv/tags/tags.db 'select item from all_items' )
 
-if [ -e STORIES.patch ]; then
-  tagcoll copy -g -p STORIES.patch STORIES | sponge STORIES
-  rm -f STORIES.patch
-  git commit STORIES -m "Adding tags."
+if [ -e BROKEN ]; then
+  echo "Broken stories:"
+  cat BROKEN
+  rm BROKEN
+  echo
 fi
 
 beep

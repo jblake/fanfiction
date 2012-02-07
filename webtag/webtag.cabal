@@ -1,0 +1,13 @@
+Name: webtag
+Version: 0.1
+License: BSD3
+License-file: LICENSE
+Author: Julian Blake Kongslie
+Maintainer: jblake@omgwallhack.org
+Category: Web
+Build-type: Simple
+Cabal-version: >=1.2
+
+Executable webtag
+  Main-is: Main.hs
+  Build-depends: base, cgi, fastcgi, HDBC, HDBC-sqlite3, json, mtl

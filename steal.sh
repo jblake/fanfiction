@@ -59,7 +59,7 @@ function getAllChapters () {
 
 }
 
-if egrep -q "^${STORY}:.* prune(,|$)" STORIES; then
+if [[ "$(sqlite3 /srv/tags/tags.db "select count(*) from tags where item = '${STORY}' and tag = 'prune'")" != 0 ]]; then
   echo "${STORY}: Pruned."
   rm -f import/*_"${STORY}".epub
 else
@@ -74,6 +74,7 @@ else
 
   if [ "${TITLE}" == "" ]; then
     echo "This story (${STORY}) doesn't appear to exist!"
+    echo "${STORY}" >> BROKEN
   else
 
     echo "This is ${TITLE} by ${AUTHOR}, updated ${DATE}."
@@ -87,7 +88,7 @@ else
       rm -f import/*_"${STORY}".epub
 
       if grep -q 'script-attribute-c.png' "${CHAPTERS[0]}"; then
-        echo "${STORY}: +complete" >> STORIES.patch
+        sqlite3 /srv/tags/tags.db "insert into tags ( item, tag ) values ( '${STORY}', 'complete' )"
       fi
 
       echo -n "Fetching remaining chapters... "
