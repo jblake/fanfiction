@@ -1,12 +1,13 @@
 #!/bin/bash
 
-for f in $(./find.sh 'unread && !prune' | rl); do
+while true; do
 
-  n="$(echo $f | perl -pne 's/.*_([0-9]+)\.epub$/$1/')"
+  STORY="$(sqlite3 /srv/tags/tags.db "select item from tags t1 where tag = 'unread' and not exists (select * from tags t2 where t1.item = t2.item and t2.tag = 'prune') order by random() limit 1")"
 
-  #fbreader import/$f 2>/dev/null
-  echo $f
+  FILE="$(cd import; ls *_"${STORY}".epub)"
 
-  ./tag.sh $n
+  clear
+  echo "${FILE}"
+  read
 
 done

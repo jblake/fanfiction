@@ -32,8 +32,8 @@ while [ $# -gt 0 ]; do
       echo "Does not appear to exist!"
     else
 
-      for TAG in ${SHIPTAGS} unread; do
-        sqlite3 /srv/tags/tags.db "insert into tags ( item, tag ) values ( '${STORY}', '${TAG}' )"
+      for TAG in ${SHIPTAGS}; do
+        sqlite3 /srv/tags/tags.db "insert into tags ( item, tag ) values ( '${STORY}', '${TAG}' )" || true
       done
 
       cleanTemps
