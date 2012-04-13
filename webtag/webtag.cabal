@@ -10,7 +10,7 @@ license: BSD3
 maintainer: jblake@omgwallhack.org
 
 executable webtag
-  build-depends: base, cgi, fastcgi, HDBC, HDBC-sqlite3, json, mtl, split
+  build-depends: base, cgi, directory, fastcgi, HDBC, HDBC-sqlite3, json, mtl, split
   extensions: DeriveDataTypeable, NamedFieldPuns, RecordWildCards
   ghc-options: -Wall
   main-is: Main.hs

@@ -8,6 +8,9 @@ while true; do
 
   clear
   echo "${FILE}"
+  echo
+  sqlite3 /srv/tags/tags.db "select tag from tags where item = '${STORY}' order by tag asc"
+  echo
   read
 
 done

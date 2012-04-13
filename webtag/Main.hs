@@ -7,12 +7,17 @@ where
 import Control.Monad
 import Database.HDBC
 import Database.HDBC.Sqlite3
-import qualified Data.List as L
+import Data.List
 import Data.List.Split
-import Data.Maybe
 import Network.CGI
 import Network.FastCGI
+import System.Directory
 import Text.JSON.Generic
+
+data Info = Info
+  { text :: String
+  }
+  deriving (Data, Read, Show, Typeable)
 
 data Tag = Tag
   { name    :: String
@@ -21,12 +26,12 @@ data Tag = Tag
   deriving (Data, Read, Show, Typeable)
 
 data TagDB = TagDB
-  { allTags  :: IO [String]
-  , itemTags :: String -> IO [Tag]
-  , setTag   :: String -> String -> IO ()
-  , clearTag :: String -> String -> IO ()
-  , find     :: [String] -> [String] -> IO [String]
-  , done     :: IO ()
+  { allTags   :: IO [String]
+  , itemTags  :: String -> IO [Tag]
+  , setTag    :: String -> String -> IO ()
+  , clearTag  :: String -> String -> IO ()
+  , findItems :: [Either String String] -> IO [String]
+  , done      :: IO ()
   }
 
 getTagDB :: IO TagDB
@@ -34,10 +39,10 @@ getTagDB = do
 
   db <- connectSqlite3 "/srv/tags/tags.db"
 
-  allTagsStmt <- prepare db "SELECT tag FROM all_tags ORDER BY tag ASC;"
-  itemTagsStmt <- prepare db "SELECT all_tags.tag, tags.item IS NOT NULL FROM all_tags LEFT OUTER JOIN tags ON ( tags.tag = all_tags.tag AND tags.item = ? ) ORDER BY all_tags.tag ASC;"
-  setTagStmt <- prepare db "INSERT INTO tags ( item, tag ) VALUES ( ?, ? );"
-  clearTagStmt <- prepare db "DELETE FROM tags WHERE item = ? AND tag = ?;"
+  allTagsStmt  <- prepare db "SELECT tag FROM tags GROUP BY tag ORDER BY COUNT(*) DESC, tag ASC"
+  itemTagsStmt <- prepare db "SELECT all_tags.tag, tags.item IS NOT NULL FROM all_tags LEFT OUTER JOIN tags ON ( tags.tag = all_tags.tag AND tags.item = ? ) ORDER BY (SELECT COUNT(*) FROM tags x WHERE x.tag = all_tags.tag) DESC, all_tags.tag ASC"
+  setTagStmt   <- prepare db "INSERT INTO tags ( item, tag ) VALUES ( ?, ? )"
+  clearTagStmt <- prepare db "DELETE FROM tags WHERE item = ? AND tag = ?"
 
   let
 
@@ -53,17 +58,29 @@ getTagDB = do
       commit db
       return $ map (\[ts, is] -> Tag { name = fromSql ts, checked = fromSql is }) rs
 
+    setTag "" _ = return ()
+    setTag _ "" = return ()
     setTag i t = handleSql (const $ return ()) $ do
       _ <- execute setTagStmt [toSql i, toSql t]
       commit db
 
+    clearTag "" _ = return ()
+    clearTag _ "" = return ()
     clearTag i t = do
       _ <- execute clearTagStmt [toSql i, toSql t]
       commit db
 
-    find has hasnt = do
-      stmt <- prepare db $ L.intercalate " AND " $ "SELECT DISTINCT item FROM tags t1 WHERE 1 " : ["EXISTS (SELECT * FROM tags t2 WHERE t2.item = t1.item AND t2.tag = ?)" | _ <- has] ++ ["NOT EXISTS (SELECT * FROM tags t2 WHERE t2.item = t1.item AND t2.tag = ?)" | _ <- hasnt]
-      _ <- execute stmt $ map toSql $ has ++ hasnt
+    findItems ts = do
+
+      let
+
+        mksql (Left t)  = (" EXCEPT    SELECT item FROM tags WHERE tag = ?", t)
+        mksql (Right t) = (" INTERSECT SELECT item FROM tags WHERE tag = ?", t)
+
+        (sql, tags) = unzip $ map mksql ts
+
+      stmt <- prepare db $ "SELECT item FROM all_items" ++ concat sql
+      _ <- execute stmt $ map toSql tags
       rs <- fetchAllRows' stmt
       commit db
       return $ map (fromSql . head) rs
@@ -83,6 +100,24 @@ main = do
     Just mode <- getVar "WEBTAG_MODE"
 
     case mode of
+
+      "info" -> do
+
+        Just path <- getVar "PATH_INFO"
+        let item = reverse $ takeWhile (/= '/') $ reverse path
+
+        dir <- liftIO $ getDirectoryContents "/home/jblake/src/fanfiction/import"
+
+        let
+          suffix = "_" ++ item ++ ".epub"
+          text = intercalate "\n" $ filter (isSuffixOf suffix) dir
+          info = Info {..}
+
+        setStatus 200 "OK"
+        setHeader "Cache-control" "no-cache"
+        setHeader "Content-type" "application/json"
+
+        output $ encodeJSON info
 
       "item" -> do
 
@@ -110,14 +145,12 @@ main = do
         Just path <- getVar "PATH_INFO"
 
         let
-          tags = filter (not . null) $ splitOn "/" path
+          tags = map tagNot $ filter (not . null) $ splitOn "/" path
 
-          tagNot ('!':t) = (Nothing, Just t)
-          tagNot t       = (Just t, Nothing)
+          tagNot ('!':t) = Left t
+          tagNot t       = Right t
 
-          (hasL, hasntL) = unzip $ map tagNot tags
-
-        items <- liftIO $ find db (catMaybes hasL) (catMaybes hasntL)
+        items <- liftIO $ findItems db tags
 
         setStatus 200 "OK"
         setHeader "Cache-control" "no-cache"

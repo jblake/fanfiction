@@ -32,7 +32,7 @@ while [ $# -gt 0 ]; do
       echo "Does not appear to exist!"
     else
 
-      for TAG in ${SHIPTAGS}; do
+      for TAG in unread ${SHIPTAGS}; do
         sqlite3 /srv/tags/tags.db "insert into tags ( item, tag ) values ( '${STORY}', '${TAG}' )" || true
       done
 

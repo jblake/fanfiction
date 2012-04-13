@@ -87,7 +87,7 @@ else
 
       rm -f import/*_"${STORY}".epub
 
-      sqlite3 /srv/tags/tags.db "insert into tags ( item, tag ) values ( '${STORY}', 'unread' )" || true
+#      sqlite3 /srv/tags/tags.db "insert into tags ( item, tag ) values ( '${STORY}', 'unread' )" || true
 
       if grep -q 'script-attribute-c.png' "${CHAPTERS[0]}"; then
         sqlite3 /srv/tags/tags.db "insert into tags ( item, tag ) values ( '${STORY}', 'complete' )" || true
