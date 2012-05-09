@@ -1,0 +1,12 @@
+name: gtktag
+version: 0.1
+license: MIT
+license-file: LICENSE
+author: Julian Blake Kongslie
+maintainer: jblake@omgwallhack.org
+build-type: Simple
+cabal-version: >=1.8
+
+executable gtktag
+ main-is: Main.hs
+ build-depends: base, HDBC, HDBC-sqlite3, gtk, transformers, template-haskell

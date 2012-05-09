@@ -12,10 +12,13 @@ import Data.List.Split
 import Network.CGI
 import Network.FastCGI
 import System.Directory
+import System.FilePath
+import System.Posix.Files
 import Text.JSON.Generic
 
 data Info = Info
-  { text :: String
+  { filename :: String
+  , size     :: Integer
   }
   deriving (Data, Read, Show, Typeable)
 
@@ -108,16 +111,29 @@ main = do
 
         dir <- liftIO $ getDirectoryContents "/home/jblake/src/fanfiction/import"
 
-        let
-          suffix = "_" ++ item ++ ".epub"
-          text = intercalate "\n" $ filter (isSuffixOf suffix) dir
-          info = Info {..}
+        let suffix = "_" ++ item ++ ".epub"
 
-        setStatus 200 "OK"
-        setHeader "Cache-control" "no-cache"
-        setHeader "Content-type" "application/json"
+        case filter (isSuffixOf suffix) dir of
+          [filename] -> do
+            stat <- liftIO $ getFileStatus $ "/home/jblake/src/fanfiction/import" </> filename
+            let size = fromIntegral $ fileSize stat
 
-        output $ encodeJSON info
+            setStatus 200 "OK"
+            setHeader "Cache-control" "no-cache"
+            setHeader "Content-type" "application/json"
+            output $ encodeJSON $ Info {..}
+
+          [] -> do
+            setStatus 404 "Not found"
+            setHeader "Cache-control" "no-cache"
+            setHeader "Content-type" "text/plain"
+            output "Couldn't get info for such an item."
+
+          _ -> do
+            setStatus 500 "Internal server error"
+            setHeader "Cache-control" "no-cache"
+            setHeader "Content-type" "text/plain"
+            output "Multiple results for such an item."
 
       "item" -> do
 
