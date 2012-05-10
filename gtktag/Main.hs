@@ -43,6 +43,6 @@ main = do
 
     endUI = mainQuit
 
-  initWindow $ WindowBackend {..}
+  initTagWindow $ TagBackend {..}
 
   mainGUI

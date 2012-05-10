@@ -14,24 +14,24 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Builder
 import Language.Haskell.TH
 
-data WindowBackend = WindowBackend
+data TagBackend = TagBackend
   { getTags :: String -> String -> IO [(String, Bool)]
   , setTag :: String -> String -> IO ()
   , clearTag :: String -> String -> IO ()
   , endUI :: IO ()
   }
 
-windowXML :: String
-windowXML = $( runIO (readFile "tagwin.glade") >>= stringE )
+tagWindowXML :: String
+tagWindowXML = $( runIO (readFile "tagwin.glade") >>= stringE )
 
-initWindow :: WindowBackend -> IO ()
-initWindow (WindowBackend {..}) = do
+initTagWindow :: TagBackend -> IO ()
+initTagWindow (TagBackend {..}) = do
 
   initialTags <- getTags "" ""
   tagStore <- listStoreNew initialTags
 
   builder <- builderNew
-  builderAddFromString builder windowXML
+  builderAddFromString builder tagWindowXML
 
   tagWindow <- builderGetObject builder castToWindow "tagWindow"
   itemEntry <- builderGetObject builder castToEntry "itemEntry"
@@ -63,7 +63,7 @@ initWindow (WindowBackend {..}) = do
   iconViewSetModel tagView $ Just tagStore
 
   cellLayoutSetAttributes tagView tagToggle tagStore $ \(name, set) -> [ cellToggleActive := set ]
-  cellLayoutSetAttributes tagView tagName   tagStore $ \(name, set) -> [ cellText := name ]
+  cellLayoutSetAttributes tagView tagName   tagStore $ \(name, set) -> [ cellText := name, cellTextForeground := if set then "#ff0000" else "#000000" ]
 
   set tagToggle [ cellToggleActivatable := True ]
   set tagName [ cellTextFont := "xx-large" ]
@@ -83,21 +83,3 @@ filterTags :: (String -> IO [(String, Bool)]) -> (String -> String -> IO [(Strin
 filterTags getTags item tagSearch = do
   allTags <- getTags item
   return $ filter (\(tag, _) -> tagSearch `isInfixOf` tag) allTags
-
-test :: IO ()
-test = do
-  initGUI
-  initWindow $ WindowBackend {..}
-  mainGUI
-
-  where
-
-    getTags = filterTags getAllTags
-
-    getAllTags item = return [(t, not $ item `isInfixOf` t) | t <- ["foo", "bar", "qux", "biglongtag", "someothertag"]]
-
-    setTag item tag = putStrLn $ "set " ++ item ++ "/" ++ tag
-
-    clearTag item tag = putStrLn $ "clear " ++ item ++ "/" ++ tag
-
-    endUI = mainQuit
