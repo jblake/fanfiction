@@ -21,8 +21,8 @@ data TagBackend = TagBackend
   , endUI :: IO ()
   }
 
-tagWindowXML :: String
-tagWindowXML = $( runIO (readFile "tagwin.glade") >>= stringE )
+gladeXML :: String
+gladeXML = $( runIO (readFile "tagwin.glade") >>= stringE )
 
 initTagWindow :: TagBackend -> IO ()
 initTagWindow (TagBackend {..}) = do
@@ -31,7 +31,7 @@ initTagWindow (TagBackend {..}) = do
   tagStore <- listStoreNew initialTags
 
   builder <- builderNew
-  builderAddFromString builder tagWindowXML
+  builderAddFromString builder gladeXML
 
   tagWindow <- builderGetObject builder castToWindow "tagWindow"
   itemEntry <- builderGetObject builder castToEntry "itemEntry"
