@@ -1,0 +1,7 @@
+From: Julian Blake Kongslie <jblake@omgwallhack.org>
+Subject: [PATCH] fanfiction-ng
+
+This is a next-generation fanfiction manager which supports more source sites
+and better UIs.
+
+Signed-off-by: Julian Blake Kongslie <jblake@omgwallhack.org>
