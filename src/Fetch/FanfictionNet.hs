@@ -33,8 +33,10 @@ fetch uniqueID storyid = browse $ do
       let
         body = tagTree $ parseTags $ T.decodeUtf8 $ convertFuzzy Transliterate "utf-8" "utf-8" $ rspBody resp
         header = [ t | t@(TagBranch "center" _ _) <- universeTree body ]
-        title = T.unpack $ renderTags $ flattenTree $ head [ cs | (TagBranch "b" _ cs) <- universeTree header ]
-        author = T.unpack $ renderTags $ flattenTree $ head [ cs | (TagBranch "a" _ cs) <- universeTree header ]
+        [TagText titleText] = parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "b" _ cs) <- universeTree header ]
+        [TagText authorText] = parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "a" _ cs) <- universeTree header ]
+        title = T.unpack titleText
+        author = T.unpack authorText
         chpTitle = T.strip $ renderTags $ reverse $ takeWhile (~== TagText ("" :: T.Text)) $ dropWhile (~/= TagText ("" :: T.Text)) $ reverse $ flattenTree $ head [ cs | (TagBranch "div" as cs) <- universeTree body, ("id", "content") `elem` as ]
         [TagText chpTitleText] = parseTags chpTitle
         chpContent = T.strip $ renderTags $ flattenTree $ concat [ cs | (TagBranch "div" as cs) <- universeTree body, ("id", "storycontent") `elem` as ]
