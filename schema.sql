@@ -33,14 +33,14 @@ create table stories
   );
 
 create table sources
-  ( story int not null references stories
+  ( story int not null references stories on delete cascade
   , source site not null
   , ref text not null
   , primary key ( story, source )
   );
 
 create table tags
-  ( story int not null references stories
+  ( story int not null references stories on delete cascade
   , tag text not null
   , primary key ( story, tag )
   );
