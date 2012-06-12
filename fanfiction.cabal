@@ -1,0 +1,13 @@
+name: fanfiction
+version: 0.1
+license: MIT
+license-file: LICENSE
+author: Julian Blake Kongslie
+maintainer: jblake@omgwallhack.org
+build-type: Simple
+cabal-version: >=1.8
+
+executable update
+ main-is: Update.hs
+ build-depends: base, zip-archive
+ hs-source-dirs: src
