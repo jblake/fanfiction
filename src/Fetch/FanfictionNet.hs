@@ -54,6 +54,7 @@ fetch first = do
     uniqueID = infoUnique first
     title = infoTitle first
     author = infoAuthor first
+    modified = infoUpdated first
     chapters = infoChapter first : remain
 
   return $ EPub {..}

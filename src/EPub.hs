@@ -15,15 +15,17 @@ import Control.Monad
 import Control.Monad.Trans.State
 import Data.ByteString.Lazy
 import Data.ByteString.Lazy.UTF8
+import Data.Time.Clock
+import Data.Time.Clock.POSIX
 import Text.XML.Light
 
 data EPub = EPub
   { uniqueID :: String
   , title    :: String
   , author   :: String
+  , modified :: UTCTime
   , chapters :: [(String, ByteString)]
   }
-  deriving (Read, Show)
 
 type XML = State Element
 
@@ -47,9 +49,11 @@ compileEPub :: EPub -> ByteString
 compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArchive (mimetype : containerxml : bookopf : bookncx : chapterEntries)
   where
 
-    mimetype = toEntry "mimetype" 0 $ fromString "application/epub+zip"
+    modTime = round $ utcTimeToPOSIXSeconds modified
 
-    containerxml = toEntry "META-INF/container.xml" 0 $ runXML "container" $ do
+    mimetype = toEntry "mimetype" modTime $ fromString "application/epub+zip"
+
+    containerxml = toEntry "META-INF/container.xml" modTime $ runXML "container" $ do
       attr "version" "1.0"
       attr "xmlns" "urn:oasis:names:tc:opendocument:xmlns:container"
       child "rootfiles" $ do
@@ -57,7 +61,7 @@ compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArc
           attr "full-path" "OPS/book.opf"
           attr "media-type" "application/oebps-package+xml"
 
-    bookopf = toEntry "OPS/book.opf" 0 $ runXML "package" $ do
+    bookopf = toEntry "OPS/book.opf" modTime $ runXML "package" $ do
       attr "version" "2.0"
       attr "xmlns" "http://www.idpf.org/2007/opf"
       attr "unique-identifier" uniqueID
@@ -89,7 +93,7 @@ compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArc
         forM_ (Prelude.zip [1..] chapters) $ \(n, (ctitle, content)) -> do
           child "itemref" $ attr "idref" $ "chapter" ++ show n
 
-    bookncx = toEntry "OPS/book.ncx" 0 $ runXML "ncx" $ do
+    bookncx = toEntry "OPS/book.ncx" modTime $ runXML "ncx" $ do
       attr "version" "2005-1"
       attr "xmlns" "http://www.daisy.org/z3986/2005/ncx/"
 
@@ -117,4 +121,4 @@ compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArc
             child "navLabel" $ child "text" $ text ctitle
             child "content" $ attr "src" $ "chapter" ++ show n ++ ".xhtml"
 
-    chapterEntries = [ toEntry ("OPS/chapter" ++ show n ++ ".xhtml") 0 $ content |  (n, (ctitle, content)) <- Prelude.zip [1..] chapters ]
+    chapterEntries = [ toEntry ("OPS/chapter" ++ show n ++ ".xhtml") modTime $ content |  (n, (ctitle, content)) <- Prelude.zip [1..] chapters ]
