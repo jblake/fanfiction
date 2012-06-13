@@ -5,8 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Fetch.FanfictionNet
-  ( Info(..)
-  , peek
+  ( peek
   , fetch
   )
 where
@@ -28,16 +27,7 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree
 
 import EPub
-
-data Info = Info
-  { infoUnique :: String
-  , infoStoryID :: String
-  , infoTitle :: String
-  , infoAuthor :: String
-  , infoUpdated :: UTCTime
-  , infoChapter :: (String, BS.ByteString)
-  }
-  deriving (Read, Show)
+import Fetch
 
 peek :: String -> String -> BrowserAction (HandleStream BS.ByteString) (Maybe Info)
 peek = fetchChapter 1
