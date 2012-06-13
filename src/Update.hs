@@ -9,6 +9,8 @@ import Control.Concurrent.Chan
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
+import qualified Data.ByteString.Lazy as BS
+import Data.Char
 import Database.HDBC
 import Database.HDBC.PostgreSQL
 import Network.Browser
@@ -26,6 +28,8 @@ main = do
     setOutHandler $ const $ return ()
     m
 
+  epubWorker <- newWorker id
+
   let
     tryFetch storyDone storyID [] = do
       putStrLn $ "No remaining sources for story " ++ storyID ++ "!"
@@ -39,7 +43,11 @@ main = do
           Just info -> liftIO $ bg $ first ffnetWorker $ do
             epub <- FFNet.fetch info
             liftIO $ putStrLn $ "Got story " ++ storyID ++ " using fanfiction.net:" ++ ref ++ "."
-            liftIO $ putMVar storyDone ()
+            liftIO $ bg $ first epubWorker $ do
+              let path = "import/" ++ (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ storyID) ++ ".epub"
+              BS.writeFile path $ compileEPub epub
+              putStrLn $ "Finished saving epub for story " ++ storyID ++ "."
+              putMVar storyDone ()
 
           Nothing -> liftIO $ do
             putStrLn $ "Can't use fanfiction.net:" ++ ref ++ " for story " ++ storyID ++ ": not found!"
