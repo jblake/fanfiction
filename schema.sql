@@ -10,6 +10,7 @@ drop view unpruned_story_tags cascade;
 
 drop function add_story( ) cascade;
 drop function del_story( int ) cascade;
+drop function get_filename( int, text ) cascade;
 drop function add_source( int, site, text ) cascade;
 drop function add_tag( int, text ) cascade;
 drop function del_tag( int, text ) cascade;
@@ -28,6 +29,7 @@ create type site as enum
 
 create table stories
   ( id serial not null
+  , filename text
   , pruned boolean not null default 'f'
   , primary key ( id )
   );
@@ -72,6 +74,20 @@ create function add_story( ) returns int strict volatile as $$
 create function del_story( the_story int ) returns void strict volatile as $$
   begin
     update stories set pruned = 't' where id = the_story;
+  end;
+  $$ language plpgsql;
+
+create function get_filename( the_story int, the_filename text ) returns text strict volatile as $$
+  declare
+    old_filename text;
+  begin
+    select filename into strict old_filename from stories where id = the_story;
+    if old_filename is null then
+      update stories set filename = the_filename where id = the_story;
+      return the_filename;
+    else
+      return old_filename;
+    end if;
   end;
   $$ language plpgsql;
 

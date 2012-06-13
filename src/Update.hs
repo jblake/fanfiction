@@ -30,37 +30,50 @@ main = do
 
   epubWorker <- newWorker id
 
-  let
-    tryFetch storyDone storyID [] = do
-      putStrLn $ "No remaining sources for story " ++ storyID ++ "!"
-      putMVar storyDone ()
-
-    tryFetch storyDone storyID (("fanfiction.net", ref):fallbacks) = bg $ first ffnetWorker $ do
-
-        maybeInfo <- FFNet.peek storyID ref
-        case maybeInfo of
-
-          Just info -> liftIO $ bg $ first ffnetWorker $ do
-            epub <- FFNet.fetch info
-            liftIO $ putStrLn $ "Got story " ++ storyID ++ " using fanfiction.net:" ++ ref ++ "."
-            liftIO $ bg $ first epubWorker $ do
-              let path = "import/" ++ (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ storyID) ++ ".epub"
-              BS.writeFile path $ compileEPub epub
-              putStrLn $ "Finished saving epub for story " ++ storyID ++ "."
-              putMVar storyDone ()
-
-          Nothing -> liftIO $ do
-            putStrLn $ "Can't use fanfiction.net:" ++ ref ++ " for story " ++ storyID ++ ": not found!"
-            tryFetch storyDone storyID fallbacks
-
-    tryFetch storyDone storyID ((s, ref):fallbacks) = do
-      putStrLn $ "Can't use source " ++ s ++ ":" ++ ref ++ " for story " ++ storyID ++ ": site not supported!"
-      tryFetch storyDone storyID fallbacks
-
   signals <- withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
 
-    unprunedStoriesStmt <- prepare db "select id from stories where not pruned"
+    filepathStmt <- prepare db "select get_filepath( ?, ? )"
     sourcesStmt <- prepare db "select source, ref from sources where story = ? order by source asc"
+    unprunedStoriesStmt <- prepare db "select id from stories where not pruned"
+
+    let
+      writeEPub storyDone info epub = do
+
+        let
+          candidatePath = (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"
+
+        execute filepathStmt [toSql $ infoUnique info, toSql candidatePath]
+        [[pathSql]] <- fetchAllRows' filepathStmt
+
+        let
+          path = "import/" ++ fromSql pathSql
+
+        BS.writeFile path $ compileEPub epub
+
+        putStrLn $ "Wrote " ++ path ++ "."
+        putMVar storyDone ()
+
+      tryFetch storyDone storyID [] = do
+        putStrLn $ "No remaining sources for story " ++ storyID ++ "!"
+        putMVar storyDone ()
+
+      tryFetch storyDone storyID (("fanfiction.net", ref):fallbacks) = bg $ first ffnetWorker $ do
+
+          maybeInfo <- FFNet.peek storyID ref
+          case maybeInfo of
+
+            Just info -> liftIO $ bg $ first ffnetWorker $ do
+              epub <- FFNet.fetch info
+              liftIO $ putStrLn $ "Got story " ++ storyID ++ " using fanfiction.net:" ++ ref ++ "."
+              liftIO $ bg $ first epubWorker $ writeEPub storyDone info epub
+
+            Nothing -> liftIO $ do
+              putStrLn $ "Can't use fanfiction.net:" ++ ref ++ " for story " ++ storyID ++ ": not found!"
+              tryFetch storyDone storyID fallbacks
+
+      tryFetch storyDone storyID ((s, ref):fallbacks) = do
+        putStrLn $ "Can't use source " ++ s ++ ":" ++ ref ++ " for story " ++ storyID ++ ": site not supported!"
+        tryFetch storyDone storyID fallbacks
 
     execute unprunedStoriesStmt []
     rs <- fetchAllRows' unprunedStoriesStmt
