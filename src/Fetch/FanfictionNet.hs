@@ -95,7 +95,9 @@ fetchChapter n infoUnique infoStoryID = do
               _ -> case postedRegexMD `match` flatMiscInfo of
                 [[_,m,d]] -> UTCTime (fromGregorian thisYear (read m) (read d)) 0
                 _ -> UTCTime (fromGregorian 1 1 1) 0
-        [TagText chpTitleText] = parseTags chpTitle
+        chpTitleText = case parseTags chpTitle of
+          [TagText t] -> t
+          [] -> ""
         chpContent = T.strip $ renderTags $ flattenTree $ concat [ cs | (TagBranch "div" as cs) <- universeTree body, ("id", "storycontent") `elem` as ]
         infoTitle = T.unpack titleText
         infoAuthor = T.unpack authorText

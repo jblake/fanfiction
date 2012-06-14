@@ -1,13 +1,15 @@
 -- Copyright © 2012 Julian Blake Kongslie <jblake@omgwallhack.org>
 -- Licensed under the MIT license.
 
+{-# LANGUAGE RecordWildCards #-}
+
 module Main
 where
 
-import Control.Concurrent
-import Control.Concurrent.Chan
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.Reader
 import qualified Data.ByteString.Lazy as BS
 import Data.Char
@@ -23,97 +25,119 @@ import EPub
 import Fetch
 import Fetch.FanfictionNet as FFNet
 
+data DB = DB
+  { db :: Connection
+  , fileNameStmt :: Statement
+  , sourcesStmt :: Statement
+  , unprunedStoriesStmt :: Statement
+  }
+
+type DBM a b = Work (ReaderT DB IO) a b
+
+withDB :: ReaderT DB IO a -> IO a
+withDB m = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
+
+  fileNameStmt <- prepare db "select get_filename( ?, ? )"
+  sourcesStmt <- prepare db "select source, ref from sources where story = ? order by source asc"
+  unprunedStoriesStmt <- prepare db "select id from stories where not pruned"
+
+  runReaderT m $ DB {..}
+
+getFileName :: String -> String -> DBM a String
+getFileName unique candidate = do
+  DB {..} <- lift ask
+  liftIO $ do
+    execute fileNameStmt [toSql unique, toSql candidate]
+    [[name]] <- fetchAllRows' fileNameStmt
+    return $ fromSql name
+
+getSources :: String -> DBM a [(String, String)]
+getSources unique = do
+  DB {..} <- lift ask
+  liftIO $ do
+    execute sourcesStmt [toSql unique]
+    rs <- fetchAllRows' sourcesStmt
+    return [ (fromSql source, fromSql ref) | [source, ref] <- rs ]
+
+getUnprunedStories :: DBM a [String]
+getUnprunedStories = do
+  DB {..} <- lift ask
+  liftIO $ do
+    execute unprunedStoriesStmt []
+    rs <- fetchAllRows' unprunedStoriesStmt
+    return [ fromSql unique | [unique] <- rs ]
+
 main :: IO ()
 main = do
+
+  dbWorker <- newWorker withDB
+
+  epubWorker <- newWorker id
 
   ffnetWorker <- newWorker $ \m -> browse $ do
     setAllowRedirects True
     setOutHandler $ const $ return ()
     m
 
-  filepathWorker <- newWorker id
-  epubWorker <- newWorker id
+  let
 
-  signals <- withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
+    writeEPub info epub path = lift $ do
+      putStrLn $ infoUnique info ++ ":     Writing " ++ path
+      BS.writeFile path $ compileEPub epub
 
-    filepathStmt <- prepare db "select get_filepath( ?, ? )"
-    sourcesStmt <- prepare db "select source, ref from sources where story = ? order by source asc"
-    unprunedStoriesStmt <- prepare db "select id from stories where not pruned"
+    checkUpdated info fetchWorker fetchAct = do
 
-    let
-      writeEPub storyDone info epub path = do
+      fileName <- getFileName (infoUnique info) $ (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"
+      let path = "import/" ++ fileName
 
-        BS.writeFile path $ compileEPub epub
+      exists <- liftIO $ fileExist path
 
-        putStrLn $ infoUnique info ++ ": Wrote " ++ path
-        putMVar storyDone ()
+      if not exists
 
-      considerEPub storyDone info worker act = do
+        then pass fetchWorker $ do
+          liftIO $ putStrLn $ infoUnique info ++ ":     New story"
+          epub <- fetchAct
+          pass epubWorker $ writeEPub info epub path
 
-        let
-          candidatePath = (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"
+        else do
 
-        execute filepathStmt [toSql $ infoUnique info, toSql candidatePath]
-        [[pathSql]] <- fetchAllRows' filepathStmt
+          stat <- liftIO $ getFileStatus path
 
-        let
-          path = "import/" ++ fromSql pathSql
+          if modificationTime stat < CTime (round $ utcTimeToPOSIXSeconds $ infoUpdated info)
 
-        exists <- fileExist path
+            then pass fetchWorker $ do
+              liftIO $ putStrLn $ infoUnique info ++ ":     Updated"
+              epub <- fetchAct
+              pass epubWorker $ writeEPub info epub path
 
-        if not exists
-          then bg $ first worker $ do
-            epub <- act
-            liftIO $ putStrLn $ infoUnique info ++ ": Downloaded (for the first time)"
-            liftIO $ bg $ first epubWorker $ writeEPub storyDone info epub path
+            else liftIO $ putStrLn $ infoUnique info ++ ":     No change"
 
-          else do
+    doFetch :: (MonadIO m) => String -> [(String, String)] -> Work m () ()
 
-            stat <- getFileStatus path
+    doFetch unique [] = liftIO $ putStrLn $ unique ++ ": (!) No sources"
 
-            if modificationTime stat < CTime (round $ utcTimeToPOSIXSeconds $ infoUpdated info)
-              then bg $ first worker $ do
-                epub <- act
-                liftIO $ putStrLn $ infoUnique info ++ ": Downloaded (updated)"
-                liftIO $ bg $ first epubWorker $ writeEPub storyDone info epub path
+    doFetch unique (("fanfiction.net", ref):sources) = pass ffnetWorker $ do
+      liftIO $ putStrLn $ unique ++ ":     Examining ffnet/" ++ ref
 
-              else do
-                putStrLn $ infoUnique info ++ ": No change"
-                putMVar storyDone ()
+      maybeInfo <- lift $ FFNet.peek unique ref
+      case maybeInfo of
 
-      tryFetch storyDone storyID [] = do
-        putStrLn $ storyID ++ ": No sources left!"
-        putMVar storyDone ()
+        Just info -> pass dbWorker $ checkUpdated info ffnetWorker $ do
+          liftIO $ putStrLn $ unique ++ ":     Downloading ffnet/" ++ ref
+          lift $ FFNet.fetch info
 
-      tryFetch storyDone storyID (("fanfiction.net", ref):fallbacks) = bg $ first ffnetWorker $ do
+        Nothing -> do
+          liftIO $ putStrLn $ unique ++ ": (!) Invalid source ffnet/" ++ ref
+          doFetch unique sources
 
-        liftIO $ putStrLn $ storyID ++ ": Peek fanfiction.net:" ++ ref
+    doFetch unique ((source, ref):sources) = do
+      liftIO $ putStrLn $ unique ++ ": (!) Unsupported source " ++ source ++ "/" ++ ref
+      doFetch unique sources
 
-        maybeInfo <- FFNet.peek storyID ref
-        case maybeInfo of
+  uniques <- eval dbWorker $ getUnprunedStories
 
-          Just info -> liftIO $ bg $ first filepathWorker $ considerEPub storyDone info ffnetWorker (FFNet.fetch info)
+  signals <- forM uniques $ \unique -> defer dbWorker $ do
+    sources <- getSources unique
+    doFetch unique sources
 
-          Nothing -> liftIO $ do
-            putStrLn $ storyID ++ ": Invalid fanfiction.net:" ++ ref ++ "!"
-            tryFetch storyDone storyID fallbacks
-
-      tryFetch storyDone storyID ((s, ref):fallbacks) = do
-        putStrLn $ storyID ++ ": Unsupported " ++ s ++ ":" ++ ref ++ "!"
-        tryFetch storyDone storyID fallbacks
-
-    execute unprunedStoriesStmt []
-    rs <- fetchAllRows' unprunedStoriesStmt
-
-    forM [ fromSql idSql | [idSql] <- rs ] $ \storyID -> do
-
-      execute sourcesStmt [toSql storyID]
-      rs <- fetchAllRows' sourcesStmt
-
-      storyDone <- newEmptyMVar
-
-      tryFetch storyDone storyID [ (fromSql sourceSql, fromSql refSql) | [sourceSql, refSql] <- rs ]
-
-      return storyDone
-
-  forM_ signals $ takeMVar
+  forM_ signals force

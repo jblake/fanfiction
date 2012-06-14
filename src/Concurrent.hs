@@ -1,17 +1,19 @@
 -- Copyright © 2012 Julian Blake Kongslie <jblake@omgwallhack.org>
 -- Licensed under the MIT license.
 
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Concurrent
-  ( Worker
+  ( Job
+  , Worker
+  , Work
   , newWorker
-  , Pipe
-  , first
-  , (|||)
-  , fg
-  , bg
+  , defer
+  , force
+  , eval
+  , pass
   )
 where
 
@@ -19,40 +21,45 @@ import Control.Concurrent
 import Control.Concurrent.Chan
 import Control.Concurrent.MVar
 import Control.Monad
+import Control.Monad.Exception.Synchronous hiding
+  ( force
+  )
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
 
-data Command m where
-  Command :: (a -> IO ()) -> m a -> Command m
+data Pass a where Pass :: Worker m -> ExceptionalT (Pass a) m a -> Pass a
+data Command m where Command :: ExceptionalT (Pass a) m a -> MVar a -> Command m
 
+newtype Job a = Job (MVar a)
 newtype Worker m = Worker (Chan (Command m))
 
-newWorker :: (Monad m, MonadIO m) => (m () -> IO ()) -> IO (Worker m)
-newWorker run = do
-  commandChan <- newChan
-  forkIO $ run $ forever $ do
-    Command result act <- liftIO $ readChan commandChan
-    act >>= liftIO . result
-  return $ Worker commandChan
+type Work m a = ExceptionalT (Pass a) m
 
-data Pipe r where
-  Done :: Worker m -> m a -> Pipe a
-  Pass :: Pipe a -> Worker m -> (a -> m b) -> Pipe b
+instance (MonadIO m) => MonadIO (Work m a) where
+  liftIO = lift . liftIO
 
-first :: Worker m -> m a -> Pipe a
-first = Done
+newWorker :: (MonadIO m, MonadIO o) => (m () -> IO ()) -> o (Worker m)
+newWorker runM = liftIO $ do
+  chan <- newChan
+  forkIO $ runM $ forever $ do
+    Command act result <- liftIO $ readChan chan
+    mx <- runExceptionalT act
+    case mx of
+      Success x -> liftIO $ putMVar result x
+      Exception (Pass (Worker chan) act) -> liftIO $ writeChan chan $ Command act result
+  return $ Worker chan
 
-(|||) :: Pipe a -> Worker m -> (a -> m b) -> Pipe b
-(|||) = Pass
+defer :: (MonadIO o) => Worker m -> Work m a a -> o (Job a)
+defer (Worker chan) act = liftIO $ do
+  result <- newEmptyMVar
+  writeChan chan $ Command act result
+  return $ Job result
 
-start :: Pipe r -> (r -> IO ()) -> IO ()
-start (Done      (Worker chan) act) result = writeChan chan $ Command result act
-start (Pass prev (Worker chan) act) result = start prev $ \x -> writeChan chan $ Command result $ act x
+force :: (MonadIO o) => Job a -> o a
+force (Job result) = liftIO $ takeMVar result
 
-fg :: Pipe r -> IO r
-fg pipe = do
-  var <- newEmptyMVar
-  start pipe $ putMVar var
-  takeMVar var
+eval :: (MonadIO o) => Worker m -> Work m a a -> o a
+eval worker act = defer worker act >>= force
 
-bg :: Pipe () -> IO ()
-bg pipe = start pipe $ const $ return ()
+pass :: (MonadIO o) => Worker m -> Work m a a -> Work o a b
+pass worker act = throwT $ Pass worker act

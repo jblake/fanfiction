@@ -9,5 +9,5 @@ cabal-version: >=1.8
 
 executable update
  main-is: Update.hs
- build-depends: base, bytestring, HDBC, HDBC-postgresql, HTTP, iconv, network, old-locale, tagsoup, text, time, transformers, utf8-string, xml, zip-archive
+ build-depends: base, bytestring, explicit-exception, HDBC, HDBC-postgresql, HTTP, iconv, network, old-locale, regex-posix, tagsoup, text, time, transformers, unix, utf8-string, xml, zip-archive
  hs-source-dirs: src
