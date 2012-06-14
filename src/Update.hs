@@ -26,6 +26,10 @@ import EPub
 import Fetch
 import Fetch.FanfictionNet as FFNet
 
+chunk :: Int -> [a] -> [[a]]
+chunk n l | length l <= n = [l]
+          | otherwise     = take n l : chunk n (drop n l)
+
 data DB = DB
   { db :: Connection
   , fileNameStmt :: Statement
@@ -98,7 +102,15 @@ main = do
     checkUpdated :: (MonadIO m) => Info -> Worker m -> Work m () EPub -> DBM () ()
     checkUpdated info fetchWorker fetchAct = do
 
-      fileName <- getFileName (infoUnique info) $ (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"
+      let
+        compress :: String -> String
+        compress "" = ""
+        compress "_" = "_"
+        compress ('_':'_':l) = compress ('_':l)
+        compress ('_':x:l) = '_' : x : compress l
+        compress (x:l) = x : compress l
+
+      fileName <- getFileName (infoUnique info) $ compress $ (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"
       let path = "epubs/" ++ fileName
 
       exists <- liftIO $ fileExist path
@@ -149,15 +161,17 @@ main = do
 
   uniques <- eval dbWorker getUnprunedStories
 
-  putStrLn "    Queueing story runs"
+  forM (chunk 10 uniques) $ \uniqueChunk -> do
 
-  signals <- forM uniques $ \unique -> defer dbWorker $ do
-    sources <- getSources unique
-    doFetch unique sources
+    putStrLn "    Queueing a chunk of story runs"
 
-  putStrLn "    Waiting for all pipelines to complete"
+    signals <- forM uniqueChunk $ \unique -> defer dbWorker $ do
+      sources <- getSources unique
+      doFetch unique sources
 
-  forM_ signals force
+    putStrLn "    Waiting for this chunk to complete"
+
+    forM_ signals force
 
   putStrLn "    Committing changes to database"
 
