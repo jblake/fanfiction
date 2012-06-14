@@ -82,7 +82,7 @@ main = do
   let
 
     writeEPub info epub path = lift $ do
-      putStrLn $ infoUnique info ++ ":     Writing " ++ path
+      putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
       BS.writeFile path $ compileEPub epub
 
     checkUpdated info fetchWorker fetchAct = do
@@ -95,7 +95,7 @@ main = do
       if not exists
 
         then pass fetchWorker $ do
-          liftIO $ putStrLn $ infoUnique info ++ ":     New story"
+          liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": New story"
           epub <- fetchAct
           pass epubWorker $ writeEPub info epub path
 
@@ -106,38 +106,46 @@ main = do
           if modificationTime stat < CTime (round $ utcTimeToPOSIXSeconds $ infoUpdated info)
 
             then pass fetchWorker $ do
-              liftIO $ putStrLn $ infoUnique info ++ ":     Updated"
+              liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": Updated"
               epub <- fetchAct
               pass epubWorker $ writeEPub info epub path
 
-            else liftIO $ putStrLn $ infoUnique info ++ ":     No change"
+            else liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change"
 
     doFetch :: (MonadIO m) => String -> [(String, String)] -> Work m () ()
 
-    doFetch unique [] = liftIO $ putStrLn $ unique ++ ": (!) No sources"
+    doFetch unique [] = liftIO $ putStrLn $ "!!! " ++ unique ++ ": No sources"
 
     doFetch unique (("fanfiction.net", ref):sources) = pass ffnetWorker $ do
-      liftIO $ putStrLn $ unique ++ ":     Examining ffnet/" ++ ref
+      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining ffnet/" ++ ref
 
       maybeInfo <- lift $ FFNet.peek unique ref
       case maybeInfo of
 
         Just info -> pass dbWorker $ checkUpdated info ffnetWorker $ do
-          liftIO $ putStrLn $ unique ++ ":     Downloading ffnet/" ++ ref
+          liftIO $ putStrLn $ "    " ++ unique ++ ": Downloading ffnet/" ++ ref
           lift $ FFNet.fetch info
 
         Nothing -> do
-          liftIO $ putStrLn $ unique ++ ": (!) Invalid source ffnet/" ++ ref
+          liftIO $ putStrLn $ "!   " ++ unique ++ ": Invalid source ffnet/" ++ ref
           doFetch unique sources
 
     doFetch unique ((source, ref):sources) = do
-      liftIO $ putStrLn $ unique ++ ": (!) Unsupported source " ++ source ++ "/" ++ ref
+      liftIO $ putStrLn $ "!    " ++ unique ++ ": Unsupported source " ++ source ++ "/" ++ ref
       doFetch unique sources
 
+  putStrLn "    Getting story list"
+
   uniques <- eval dbWorker $ getUnprunedStories
+
+  putStrLn "    Queueing story runs"
 
   signals <- forM uniques $ \unique -> defer dbWorker $ do
     sources <- getSources unique
     doFetch unique sources
 
+  putStrLn "    Waiting for all pipelines to complete"
+
   forM_ signals force
+
+  putStrLn "    Done"
