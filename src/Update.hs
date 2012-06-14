@@ -6,6 +6,7 @@
 module Main
 where
 
+import Control.Concurrent.QSem
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
@@ -25,10 +26,6 @@ import Concurrent
 import EPub
 import Fetch
 import Fetch.FanfictionNet as FFNet
-
-chunk :: Int -> [a] -> [[a]]
-chunk n l | length l <= n = [l]
-          | otherwise     = take n l : chunk n (drop n l)
 
 data DB = DB
   { db :: Connection
@@ -159,22 +156,22 @@ main = do
 
   putStrLn "    Getting story list"
 
-  uniques <- eval dbWorker getUnprunedStories
+  uniques <- eval dbWorker Nothing getUnprunedStories
 
-  forM (chunk 25 uniques) $ \uniqueChunk -> do
+  sem <- newQSem 25
 
-    putStrLn "    Queueing a chunk of story runs"
+  putStrLn "    Starting story runs"
 
-    signals <- forM uniqueChunk $ \unique -> defer dbWorker $ do
-      sources <- getSources unique
-      doFetch unique sources
+  signals <- forM uniques $ \unique -> defer dbWorker (Just sem) $ do
+    sources <- getSources unique
+    doFetch unique sources
 
-    putStrLn "    Waiting for this chunk to complete"
+  putStrLn "    Waiting for everything to finish"
 
-    forM_ signals force
+  forM_ signals force
 
-    putStrLn "    Committing changes to database"
+  putStrLn "    Committing changes to database"
 
-    eval dbWorker commitChanges
+  eval dbWorker Nothing commitChanges
 
   putStrLn "    Done"

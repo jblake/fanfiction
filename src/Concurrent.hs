@@ -18,8 +18,9 @@ module Concurrent
 where
 
 import Control.Concurrent
-import Control.Concurrent.Chan
-import Control.Concurrent.MVar
+import Control.Concurrent.Chan.Strict
+import Control.Concurrent.MVar.Strict
+import Control.Concurrent.QSem
 import Control.Monad
 import Control.Monad.Exception.Synchronous hiding
   ( force
@@ -28,7 +29,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 
 data Pass a where Pass :: Worker m -> ExceptionalT (Pass a) m a -> Pass a
-data Command m where Command :: ExceptionalT (Pass a) m a -> MVar a -> Command m
+data Command m where Command :: ExceptionalT (Pass a) m a -> MVar a -> Maybe QSem -> Command m
 
 newtype Job a = Job (MVar a)
 newtype Worker m = Worker (Chan (Command m))
@@ -42,24 +43,25 @@ newWorker :: (MonadIO m, MonadIO o) => (m () -> IO ()) -> o (Worker m)
 newWorker runM = liftIO $ do
   chan <- newChan
   forkIO $ runM $ forever $ do
-    Command act result <- liftIO $ readChan chan
+    Command act result sem <- liftIO $ readChan chan
     mx <- runExceptionalT act
     case mx of
-      Success x -> liftIO $ putMVar result x
-      Exception (Pass (Worker chan') act') -> liftIO $ writeChan chan' $ Command act' result
+      Success x -> liftIO $ putMVar result x >> maybe (return ()) signalQSem sem
+      Exception (Pass (Worker chan') act') -> liftIO $ writeChan chan' $ Command act' result sem
   return $ Worker chan
 
-defer :: (MonadIO o) => Worker m -> Work m a a -> o (Job a)
-defer (Worker chan) act = liftIO $ do
+defer :: (MonadIO o) => Worker m -> Maybe QSem -> Work m a a -> o (Job a)
+defer (Worker chan) sem act = liftIO $ do
   result <- newEmptyMVar
-  writeChan chan $ Command act result
+  maybe (return ()) waitQSem sem
+  writeChan chan $ Command act result sem
   return $ Job result
 
 force :: (MonadIO o) => Job a -> o a
 force (Job result) = liftIO $ takeMVar result
 
-eval :: (MonadIO o) => Worker m -> Work m a a -> o a
-eval worker act = defer worker act >>= force
+eval :: (MonadIO o) => Worker m -> Maybe QSem -> Work m a a -> o a
+eval worker sem act = defer worker sem act >>= force
 
 pass :: (MonadIO o) => Worker m -> Work m a a -> Work o a b
 pass worker act = throwT $ Pass worker act
