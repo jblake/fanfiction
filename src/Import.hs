@@ -39,7 +39,6 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \pg -> do
     tags <- fetchAllRows itemTags
 
     forM_ tags $ \[tag] -> do
-      putStrLn $ "  " ++ fromSql tag
       execute addTag [story, tag]
 
   commit pg
