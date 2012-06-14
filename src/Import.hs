@@ -20,7 +20,7 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \pg -> do
   addSource <- prepare pg "select add_source( ?, 'fanfiction.net', ? )"
   addTag <- prepare pg "select add_tag( ?, ? )"
 
-  allItems <- prepare sq "select item from all_items order by item asc"
+  allItems <- prepare sq "select item from all_items order by cast (item as integer) asc"
   itemTags <- prepare sq "select tag from tags where item = ?"
 
   execute allItems []
