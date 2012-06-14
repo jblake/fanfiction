@@ -84,6 +84,8 @@ main = do
     writeEPub info epub path = lift $ do
       putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
       BS.writeFile path $ compileEPub epub
+      let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
+      setFileTimes path epochTime epochTime
 
     checkUpdated info fetchWorker fetchAct = do
 
