@@ -161,7 +161,7 @@ main = do
 
   uniques <- eval dbWorker getUnprunedStories
 
-  forM (chunk 10 uniques) $ \uniqueChunk -> do
+  forM (chunk 25 uniques) $ \uniqueChunk -> do
 
     putStrLn "    Queueing a chunk of story runs"
 
