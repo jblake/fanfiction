@@ -18,6 +18,7 @@ import Database.HDBC
 import Database.HDBC.PostgreSQL
 import Foreign.C.Types
 import Network.Browser
+import System.Directory
 import System.Posix.Files
 
 import Concurrent
@@ -84,6 +85,7 @@ main = do
     writeEPub :: Info -> EPub -> String -> Work IO () ()
     writeEPub info epub path = lift $ do
       putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
+      createDirectoryIfMissing False "import"
       BS.writeFile path $ compileEPub epub
       let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
       setFileTimes path epochTime epochTime
