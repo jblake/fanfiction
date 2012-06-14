@@ -94,7 +94,7 @@ main = do
     writeEPub :: Info -> EPub -> String -> Work IO () ()
     writeEPub info epub path = lift $ do
       putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
-      createDirectoryIfMissing False "epubs"
+      createDirectoryIfMissing False "/srv/epubs"
       BS.writeFile path $ compileEPub epub
       let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
       setFileTimes path epochTime epochTime
@@ -111,7 +111,7 @@ main = do
         compress (x:l) = x : compress l
 
       fileName <- getFileName (infoUnique info) $ compress $ (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"
-      let path = "epubs/" ++ fileName
+      let path = "/srv/epubs/" ++ fileName
 
       exists <- liftIO $ fileExist path
 

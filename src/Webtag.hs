@@ -112,13 +112,13 @@ main = do
         Just path <- getVar "PATH_INFO"
         let item = reverse $ takeWhile (/= '/') $ reverse path
 
-        dir <- liftIO $ getDirectoryContents "/home/jblake/src/fanfiction/epubs"
+        dir <- liftIO $ getDirectoryContents "/srv/epubs"
 
         let suffix = "_" ++ item ++ ".epub"
 
         case filter (isSuffixOf suffix) dir of
           [filename] -> do
-            stat <- liftIO $ getFileStatus $ "/home/jblake/src/fanfiction/epubs" </> filename
+            stat <- liftIO $ getFileStatus $ "/srv/epubs" </> filename
             let size = fromIntegral $ fileSize stat
 
             setStatus 200 "OK"
