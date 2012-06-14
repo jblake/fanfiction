@@ -81,12 +81,14 @@ main = do
 
   let
 
+    writeEPub :: Info -> EPub -> String -> Work IO () ()
     writeEPub info epub path = lift $ do
       putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
       BS.writeFile path $ compileEPub epub
       let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
       setFileTimes path epochTime epochTime
 
+    checkUpdated :: (MonadIO m) => Info -> Worker m -> Work m () EPub -> DBM () ()
     checkUpdated info fetchWorker fetchAct = do
 
       fileName <- getFileName (infoUnique info) $ (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"

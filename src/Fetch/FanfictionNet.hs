@@ -77,8 +77,12 @@ fetchChapter n infoUnique infoStoryID = do
                   | otherwise                  = y + thisCentury
         body = tagTree $ parseTags $ T.decodeUtf8 $ convertFuzzy Transliterate "utf-8" "utf-8" $ rspBody resp
         header = [ t | t@(TagBranch "center" _ _) <- universeTree body ]
-        [TagText titleText] = parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "b" _ cs) <- universeTree header ]
-        [TagText authorText] = parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "a" _ cs) <- universeTree header ]
+        titleText = case parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "b" _ cs) <- universeTree header ] of
+          [TagText t] -> t
+          _ -> error $ "Can't parse title in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
+        authorText = case parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "a" _ cs) <- universeTree header ] of
+          [TagText t] -> t
+          _ -> error $ "Can't parse author in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
         miscInfo = head [ cs | (TagBranch "div" as cs) <- universeTree body, ("id", "content") `elem` as ]
         chpTitle = T.strip $ renderTags $ reverse $ takeWhile (~== TagText ("" :: T.Text)) $ dropWhile (~/= TagText ("" :: T.Text)) $ reverse $ flattenTree miscInfo
         flatMiscInfo = T.unpack $ renderTags [ t | t <- flattenTree miscInfo, t ~== TagText ("" :: T.Text) ]
@@ -98,6 +102,7 @@ fetchChapter n infoUnique infoStoryID = do
         chpTitleText = case parseTags chpTitle of
           [TagText t] -> t
           [] -> ""
+          _ -> error $ "Can't parse chapter title in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
         chpContent = T.strip $ renderTags $ flattenTree $ concat [ cs | (TagBranch "div" as cs) <- universeTree body, ("id", "storycontent") `elem` as ]
         infoTitle = T.unpack titleText
         infoAuthor = T.unpack authorText

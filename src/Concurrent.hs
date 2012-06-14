@@ -46,7 +46,7 @@ newWorker runM = liftIO $ do
     mx <- runExceptionalT act
     case mx of
       Success x -> liftIO $ putMVar result x
-      Exception (Pass (Worker chan) act) -> liftIO $ writeChan chan $ Command act result
+      Exception (Pass (Worker chan') act') -> liftIO $ writeChan chan' $ Command act' result
   return $ Worker chan
 
 defer :: (MonadIO o) => Worker m -> Work m a a -> o (Job a)
