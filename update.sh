@@ -4,4 +4,4 @@ set -e
 
 ./build.sh
 
-dist/build/update/update +RTS -N
+time -p dist/build/update/update +RTS -N
