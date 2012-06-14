@@ -173,8 +173,8 @@ main = do
 
     forM_ signals force
 
-  putStrLn "    Committing changes to database"
+    putStrLn "    Committing changes to database"
 
-  eval dbWorker commitChanges
+    eval dbWorker commitChanges
 
   putStrLn "    Done"
