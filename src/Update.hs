@@ -11,9 +11,12 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import qualified Data.ByteString.Lazy as BS
 import Data.Char
+import Data.Time.Clock.POSIX
 import Database.HDBC
 import Database.HDBC.PostgreSQL
+import Foreign.C.Types
 import Network.Browser
+import System.Posix.Files
 
 import Concurrent
 import EPub
@@ -28,6 +31,7 @@ main = do
     setOutHandler $ const $ return ()
     m
 
+  filepathWorker <- newWorker id
   epubWorker <- newWorker id
 
   signals <- withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
@@ -37,7 +41,14 @@ main = do
     unprunedStoriesStmt <- prepare db "select id from stories where not pruned"
 
     let
-      writeEPub storyDone info epub = do
+      writeEPub storyDone info epub path = do
+
+        BS.writeFile path $ compileEPub epub
+
+        putStrLn $ infoUnique info ++ ": Wrote " ++ path
+        putMVar storyDone ()
+
+      considerEPub storyDone info worker act = do
 
         let
           candidatePath = (map (\c -> if not (isAlphaNum c) then '_' else c) $ infoTitle info ++ "_by_" ++ infoAuthor info ++ "_" ++ infoUnique info) ++ ".epub"
@@ -48,31 +59,47 @@ main = do
         let
           path = "import/" ++ fromSql pathSql
 
-        BS.writeFile path $ compileEPub epub
+        exists <- fileExist path
 
-        putStrLn $ "Wrote " ++ path ++ "."
-        putMVar storyDone ()
+        if not exists
+          then bg $ first worker $ do
+            epub <- act
+            liftIO $ putStrLn $ infoUnique info ++ ": Downloaded (for the first time)"
+            liftIO $ bg $ first epubWorker $ writeEPub storyDone info epub path
+
+          else do
+
+            stat <- getFileStatus path
+
+            if modificationTime stat < CTime (round $ utcTimeToPOSIXSeconds $ infoUpdated info)
+              then bg $ first worker $ do
+                epub <- act
+                liftIO $ putStrLn $ infoUnique info ++ ": Downloaded (updated)"
+                liftIO $ bg $ first epubWorker $ writeEPub storyDone info epub path
+
+              else do
+                putStrLn $ infoUnique info ++ ": No change"
+                putMVar storyDone ()
 
       tryFetch storyDone storyID [] = do
-        putStrLn $ "No remaining sources for story " ++ storyID ++ "!"
+        putStrLn $ storyID ++ ": No sources left!"
         putMVar storyDone ()
 
       tryFetch storyDone storyID (("fanfiction.net", ref):fallbacks) = bg $ first ffnetWorker $ do
 
-          maybeInfo <- FFNet.peek storyID ref
-          case maybeInfo of
+        liftIO $ putStrLn $ storyID ++ ": Peek fanfiction.net:" ++ ref
 
-            Just info -> liftIO $ bg $ first ffnetWorker $ do
-              epub <- FFNet.fetch info
-              liftIO $ putStrLn $ "Got story " ++ storyID ++ " using fanfiction.net:" ++ ref ++ "."
-              liftIO $ bg $ first epubWorker $ writeEPub storyDone info epub
+        maybeInfo <- FFNet.peek storyID ref
+        case maybeInfo of
 
-            Nothing -> liftIO $ do
-              putStrLn $ "Can't use fanfiction.net:" ++ ref ++ " for story " ++ storyID ++ ": not found!"
-              tryFetch storyDone storyID fallbacks
+          Just info -> liftIO $ bg $ first filepathWorker $ considerEPub storyDone info ffnetWorker (FFNet.fetch info)
+
+          Nothing -> liftIO $ do
+            putStrLn $ storyID ++ ": Invalid fanfiction.net:" ++ ref ++ "!"
+            tryFetch storyDone storyID fallbacks
 
       tryFetch storyDone storyID ((s, ref):fallbacks) = do
-        putStrLn $ "Can't use source " ++ s ++ ":" ++ ref ++ " for story " ++ storyID ++ ": site not supported!"
+        putStrLn $ storyID ++ ": Unsupported " ++ s ++ ":" ++ ref ++ "!"
         tryFetch storyDone storyID fallbacks
 
     execute unprunedStoriesStmt []
