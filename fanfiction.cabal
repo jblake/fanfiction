@@ -14,7 +14,7 @@ executable import
 
 executable update
  main-is: Update.hs
- build-depends: base, bytestring, directory, explicit-exception, HDBC, HDBC-postgresql, HTTP, iconv, network, old-locale, regex-posix, tagsoup, text, time, transformers, unix, utf8-string, xml, zip-archive
+ build-depends: base, bytestring, directory, deepseq, explicit-exception, HDBC, HDBC-postgresql, HTTP, iconv, network, old-locale, regex-posix, strict-concurrency, tagsoup, text, time, transformers, unix, utf8-string, xml, zip-archive
  ghc-options: -threaded -Werror -fwarn-unrecognised-pragmas -fwarn-warnings-deprecations -fwarn-deprecated-flags -fwarn-duplicate-exports -fwarn-hi-shadowing -fwarn-identities -fwarn-incomplete-patterns -fwarn-incomplete-uni-patterns -fwarn-incomplete-record-updates -fwarn-lazy-unlifted-bindings -fwarn-missing-fields -fwarn-missing-methods -fwarn-missing-signatures -fwarn-missing-local-sigs -fwarn-name-shadowing -fwarn-orphans -fwarn-overlapping-patterns -fwarn-tabs -fwarn-wrong-do-bind
  hs-source-dirs: src
 
