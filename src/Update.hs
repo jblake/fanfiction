@@ -68,6 +68,11 @@ getUnprunedStories = do
     rs <- fetchAllRows' unprunedStoriesStmt
     return [ fromSql unique | [unique] <- rs ]
 
+commitChanges :: DBM a ()
+commitChanges = do
+  DB {..} <- lift ask
+  liftIO $ commit db
+
 main :: IO ()
 main = do
 
@@ -142,7 +147,7 @@ main = do
 
   putStrLn "    Getting story list"
 
-  uniques <- eval dbWorker $ getUnprunedStories
+  uniques <- eval dbWorker getUnprunedStories
 
   putStrLn "    Queueing story runs"
 
@@ -153,5 +158,9 @@ main = do
   putStrLn "    Waiting for all pipelines to complete"
 
   forM_ signals force
+
+  putStrLn "    Committing changes to database"
+
+  eval dbWorker commitChanges
 
   putStrLn "    Done"
