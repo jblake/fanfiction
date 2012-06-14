@@ -2,7 +2,6 @@
 
 set -e
 
-cabal configure
-cabal build
+./build.sh
 
 dist/build/update/update +RTS -N

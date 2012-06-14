@@ -2,8 +2,7 @@
 
 set -e
 
-cabal configure
-cabal build
+./build.sh
 
 psql -f schema.sql fanfiction fanfiction
 
