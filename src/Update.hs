@@ -118,7 +118,7 @@ main = do
       if not exists
 
         then pass fetchWorker $ do
-          liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": New story"
+          liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": New story (as of " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
           epub <- fetchAct
           pass epubWorker $ writeEPub info epub path
 
@@ -129,7 +129,7 @@ main = do
           if modificationTime stat < CTime (round $ utcTimeToPOSIXSeconds $ infoUpdated info)
 
             then pass fetchWorker $ do
-              liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": Updated"
+              liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": Updated (on " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
               epub <- fetchAct
               pass epubWorker $ writeEPub info epub path
 
