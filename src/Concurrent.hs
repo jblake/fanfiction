@@ -19,6 +19,7 @@ where
 
 import Control.Concurrent
   ( forkIO
+  , yield
   )
 import Control.Concurrent.Chan
 import Control.Concurrent.MVar.Strict
@@ -53,6 +54,7 @@ newWorker runM = liftIO $ do
     case mx of
       Success x -> liftIO $ putMVar result x >> maybe (return ()) signalQSem sem
       Exception (Pass (Worker chan') act') -> liftIO $ writeChan chan' $ Command act' result sem
+    liftIO yield
   return $ Worker chan
 
 defer :: (MonadIO o, NFData a) => Worker m -> Maybe QSem -> Work m a a -> o (Job a)
