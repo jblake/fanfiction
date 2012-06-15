@@ -88,8 +88,8 @@ fetchChapter n infoUnique infoStoryID = do
         flatMiscInfo = T.unpack $ renderTags [ t | t <- flattenTree miscInfo, t ~== TagText ("" :: T.Text) ]
         postedRegexMDY = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
         postedRegexMD = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
-        updatedRegexMDY = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
-        updatedRegexMD = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
+        updatedRegexMDY = makeRegex ("U:([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
+        updatedRegexMD = makeRegex ("U:([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
         infoUpdated = case updatedRegexMDY `match` flatMiscInfo of
           [[_,m,d,y]] -> UTCTime (fromGregorian (fixYear $ read y) (read m) (read d)) 0
           _ -> case updatedRegexMD `match` flatMiscInfo of
@@ -98,7 +98,7 @@ fetchChapter n infoUnique infoStoryID = do
               [[_,m,d,y]] -> UTCTime (fromGregorian (fixYear $ read y) (read m) (read d)) 0
               _ -> case postedRegexMD `match` flatMiscInfo of
                 [[_,m,d]] -> UTCTime (fromGregorian thisYear (read m) (read d)) 0
-                _ -> UTCTime (fromGregorian 1 1 1) 0
+                _ -> error $ "Can't parse date in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
         chpTitleText = case parseTags chpTitle of
           [TagText t] -> t
           [] -> ""

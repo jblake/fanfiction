@@ -15,11 +15,14 @@ import Control.Monad.Trans.Reader
 import qualified Data.ByteString.Lazy as BS
 import Data.Char
 import Data.Time.Clock.POSIX
+import Data.Time.Format
 import Database.HDBC
 import Database.HDBC.PostgreSQL
 import Foreign.C.Types
 import Network.Browser
 import System.Directory
+import System.Environment
+import System.Locale
 import System.Posix.Files
 
 import Concurrent
@@ -130,7 +133,7 @@ main = do
               epub <- fetchAct
               pass epubWorker $ writeEPub info epub path
 
-            else liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change"
+            else liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change (last updated " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
 
     doFetch :: (MonadIO m) => String -> [(String, String)] -> Work m () ()
 
@@ -154,9 +157,13 @@ main = do
       liftIO $ putStrLn $ "!    " ++ unique ++ ": Unsupported source " ++ source ++ "/" ++ ref
       doFetch unique sources
 
-  putStrLn "    Getting story list"
+  args <- getArgs
 
-  uniques <- eval dbWorker Nothing getUnprunedStories
+  uniques <- if null args
+    then do
+      putStrLn "    Getting story list"
+      eval dbWorker Nothing getUnprunedStories
+    else return args
 
   sem <- newQSem 25
 
