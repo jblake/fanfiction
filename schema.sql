@@ -74,6 +74,7 @@ create function add_story( ) returns int strict volatile as $$
 create function del_story( the_story int ) returns void strict volatile as $$
   begin
     update stories set pruned = 't' where id = the_story;
+    delete from tags where story = the_story;
   end;
   $$ language plpgsql;
 
