@@ -21,7 +21,7 @@ import Data.Time.Clock.POSIX
 import Text.XML.Light
 
 instance NFData ByteString where
-  rnf bs = rnf $ Prelude.length $ toChunks bs
+  rnf bs = rnf $ Data.ByteString.Lazy.length bs
 
 data EPub = EPub
   { uniqueID :: String
