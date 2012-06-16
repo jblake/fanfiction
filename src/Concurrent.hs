@@ -45,10 +45,10 @@ type Work m a = ExceptionalT (Pass a) m
 instance (MonadIO m) => MonadIO (Work m a) where
   liftIO = lift . liftIO
 
-newWorker :: (MonadIO m, MonadIO o) => (m () -> IO ()) -> o (Worker m)
-newWorker runM = liftIO $ do
+newWorker :: (MonadIO m, MonadIO o) => Int -> (m () -> IO ()) -> o (Worker m)
+newWorker n runM = liftIO $ do
   chan <- newChan
-  forkIO $ runM $ forever $ do
+  replicateM n $ forkIO $ runM $ forever $ do
     Command act result sem <- liftIO $ readChan chan
     mx <- runExceptionalT act
     case mx of

@@ -90,11 +90,11 @@ commitChanges = do
 main :: IO ()
 main = do
 
-  dbWorker <- newWorker withDB
+  dbWorker <- newWorker 1 withDB
 
-  epubWorker <- newWorker id
+  epubWorker <- newWorker 4 id
 
-  ffnetWorker <- newWorker $ \m -> browse $ do
+  ffnetWorker <- newWorker 4 $ \m -> browse $ do
     setAllowRedirects True
     setOutHandler $ const $ return ()
     m
