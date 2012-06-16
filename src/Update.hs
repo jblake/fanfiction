@@ -187,7 +187,7 @@ main = do
       eval dbWorker Nothing getUnprunedStories
     else return args
 
-  sem <- newQSem 10
+  sem <- newQSem 25
 
   putStrLn "    Starting story runs"
 
