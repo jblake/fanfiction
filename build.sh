@@ -5,4 +5,4 @@ set -e
 cabal configure -O2
 cabal build
 
-sudo svc -i /etc/service/webtag/
+sudo svc -t /etc/service/webtag/
