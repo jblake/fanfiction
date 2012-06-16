@@ -33,6 +33,7 @@ import Fetch.FanfictionNet as FFNet
 data DB = DB
   { db :: Connection
   , fileNameStmt :: Statement
+  , prunedFileNamesStmt :: Statement
   , sourcesStmt :: Statement
   , unprunedStoriesStmt :: Statement
   }
@@ -43,6 +44,7 @@ withDB :: ReaderT DB IO a -> IO a
 withDB m = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
 
   fileNameStmt <- prepare db "select get_filename( ?, ? )"
+  prunedFileNamesStmt <- prepare db "select filename from stories where pruned and filename is not null"
   sourcesStmt <- prepare db "select source, ref from sources where story = ? order by source asc"
   unprunedStoriesStmt <- prepare db "select id from stories where not pruned"
 
@@ -55,6 +57,14 @@ getFileName unique candidate = do
     execute fileNameStmt [toSql unique, toSql candidate]
     [[name]] <- fetchAllRows' fileNameStmt
     return $ fromSql name
+
+getPrunedFileNames :: DBM a [String]
+getPrunedFileNames = do
+  DB {..} <- lift ask
+  liftIO $ do
+    execute prunedFileNamesStmt []
+    rs <- fetchAllRows' prunedFileNamesStmt
+    return [ fromSql name | [name] <- rs ]
 
 getSources :: String -> DBM a [(String, String)]
 getSources unique = do
@@ -156,6 +166,15 @@ main = do
     doFetch unique ((source, ref):sources) = do
       liftIO $ putStrLn $ "!    " ++ unique ++ ": Unsupported source " ++ source ++ "/" ++ ref
       doFetch unique sources
+
+  putStrLn "    Getting pruned story list"
+
+  pruned <- eval dbWorker Nothing getPrunedFileNames
+
+  putStrLn "    Pruning dead stories"
+
+  forM_ pruned $ \fileName -> do
+    removeLink $ "/srv/epubs/" ++ fileName
 
   args <- getArgs
 
