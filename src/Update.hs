@@ -92,9 +92,9 @@ main = do
 
   dbWorker <- newWorker 1 withDB
 
-  epubWorker <- newWorker 4 id
+  epubWorker <- newWorker 1 id
 
-  ffnetWorker <- newWorker 4 $ \m -> browse $ do
+  ffnetWorker <- newWorker 2 $ \m -> browse $ do
     setAllowRedirects True
     setOutHandler $ const $ return ()
     m
