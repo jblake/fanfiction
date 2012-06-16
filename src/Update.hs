@@ -187,11 +187,9 @@ main = do
       eval dbWorker Nothing getUnprunedStories
     else return args
 
-  sem <- newQSem 25
-
   putStrLn "    Starting story runs"
 
-  signals <- forM uniques $ \unique -> defer dbWorker (Just sem) $ do
+  signals <- forM uniques $ \unique -> defer dbWorker Nothing $ do
     sources <- getSources unique
     doFetch unique sources
 
