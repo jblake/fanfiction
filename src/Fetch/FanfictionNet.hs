@@ -60,6 +60,20 @@ fetch first = do
 
   return $ EPub {..}
 
+lowerTags :: [Tag T.Text] -> [Tag T.Text]
+lowerTags [] = []
+lowerTags ((TagOpen t as):ts) = TagOpen (T.toLower t) as : lowerTags ts
+lowerTags ((TagClose t):ts) = TagClose (T.toLower t) : lowerTags ts
+lowerTags (t:ts) = t : lowerTags ts
+
+closeTags :: [Tag T.Text] -> [Tag T.Text]
+closeTags [] = []
+closeTags ((TagOpen "br" as):ts) = TagOpen "br" as : TagClose "br" : closeTags ts
+closeTags (t:ts) = t : closeTags ts
+
+fixTags :: [Tag T.Text] -> [Tag T.Text]
+fixTags = closeTags . lowerTags
+
 fetchChapter :: Int -> String -> String -> BrowserAction (HandleStream BS.ByteString) (Maybe Info)
 fetchChapter n infoUnique infoStoryID = do
 
@@ -75,7 +89,7 @@ fetchChapter n infoUnique infoStoryID = do
         thisCentury = 100 * (thisYear `div` 100)
         fixYear y | y + thisCentury > thisYear = y + thisCentury - 100
                   | otherwise                  = y + thisCentury
-        body = tagTree $ parseTags $ T.decodeUtf8 $ convertFuzzy Transliterate "utf-8" "utf-8" $ rspBody resp
+        body = tagTree $ fixTags $ parseTags $ T.decodeUtf8 $ convertFuzzy Transliterate "utf-8" "utf-8" $ rspBody resp
         header = [ t | t@(TagBranch "center" _ _) <- universeTree body ]
         titleText = case parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "b" _ cs) <- universeTree header ] of
           [TagText t] -> t
