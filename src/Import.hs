@@ -17,6 +17,7 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \pg -> do
   sq <- connectSqlite3 "/srv/tags/tags.db"
 
   addStory <- prepare pg "select add_story( )"
+  delStory <- prepare pg "select del_story( ? )"
   addSource <- prepare pg "select add_source( ?, 'fanfiction.net', ? )"
   addTag <- prepare pg "select add_tag( ?, ? )"
 
@@ -39,6 +40,8 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \pg -> do
     tags <- fetchAllRows itemTags
 
     forM_ tags $ \[tag] -> do
-      execute addTag [story, tag]
+      if fromSql tag == "prune"
+        then execute delStory [story]
+        else execute addTag [story, tag]
 
   commit pg
