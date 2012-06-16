@@ -11,6 +11,7 @@ module Fetch.FanfictionNet
 where
 
 import Codec.Text.IConv
+import Control.DeepSeq
 import Control.Monad
 import Control.Monad.IO.Class
 import qualified Data.ByteString.Lazy as BS
@@ -58,7 +59,7 @@ fetch first = do
     modified = infoUpdated first
     chapters = infoChapter first : remain
 
-  return $ EPub {..}
+  return $ force $ EPub {..}
 
 lowerTags :: [Tag T.Text] -> [Tag T.Text]
 lowerTags [] = []
@@ -124,6 +125,6 @@ fetchChapter n infoUnique infoStoryID = do
 
       case header of
         [] -> return Nothing
-        _ -> return $ Just $ Info {..}
+        _ -> return $ force $ Just $ Info {..}
 
     _ -> return Nothing

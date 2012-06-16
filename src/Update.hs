@@ -7,6 +7,7 @@ module Main
 where
 
 import Control.Concurrent.QSem
+import qualified Control.DeepSeq as DS
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
@@ -130,7 +131,7 @@ main = do
         then pass fetchWorker $ do
           liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": New story (as of " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
           epub <- fetchAct
-          pass epubWorker $ writeEPub info epub path
+          DS.deepseq epub $ pass epubWorker $ writeEPub info epub path
 
         else do
 
@@ -141,7 +142,7 @@ main = do
             then pass fetchWorker $ do
               liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": Updated (on " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
               epub <- fetchAct
-              pass epubWorker $ writeEPub info epub path
+              DS.deepseq epub $ pass epubWorker $ writeEPub info epub path
 
             else liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change (last updated " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
 
@@ -155,7 +156,7 @@ main = do
       maybeInfo <- lift $ FFNet.peek unique ref
       case maybeInfo of
 
-        Just info -> pass dbWorker $ checkUpdated info ffnetWorker $ do
+        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info ffnetWorker $ do
           liftIO $ putStrLn $ "    " ++ unique ++ ": Downloading ffnet/" ++ ref
           lift $ FFNet.fetch info
 

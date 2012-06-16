@@ -11,6 +11,7 @@ module EPub
 where
 
 import Codec.Archive.Zip
+import Control.DeepSeq
 import Control.Monad
 import Control.Monad.Trans.State
 import Data.ByteString.Lazy
@@ -19,6 +20,9 @@ import Data.Time.Clock
 import Data.Time.Clock.POSIX
 import Text.XML.Light
 
+instance NFData ByteString where
+  rnf bs = rnf $ Prelude.length $ toChunks bs
+
 data EPub = EPub
   { uniqueID :: String
   , title    :: String
@@ -26,6 +30,9 @@ data EPub = EPub
   , modified :: UTCTime
   , chapters :: [(String, ByteString)]
   }
+
+instance NFData EPub where
+  rnf (EPub {..}) = uniqueID `deepseq` title `deepseq` author `deepseq` modified `deepseq` chapters `deepseq` ()
 
 type XML = State Element
 
