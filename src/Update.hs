@@ -94,7 +94,7 @@ main = do
 
   epubWorker <- newWorker 1 id
 
-  ffnetWorker <- newWorker 2 $ \m -> browse $ do
+  ffnetWorker <- newWorker 4 $ \m -> browse $ do
     setAllowRedirects True
     setOutHandler $ const $ return ()
     m
@@ -186,7 +186,7 @@ main = do
       eval dbWorker Nothing getUnprunedStories
     else return args
 
-  sem <- newQSem 25
+  sem <- newQSem 10
 
   putStrLn "    Starting story runs"
 
