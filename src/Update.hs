@@ -174,7 +174,9 @@ main = do
   putStrLn "    Pruning dead stories"
 
   forM_ pruned $ \fileName -> do
-    removeLink $ "/srv/epubs/" ++ fileName
+    let path = "/srv/epubs/" ++ fileName
+    exists <- doesFileExist path
+    when exists $ removeFile path
 
   args <- getArgs
 
