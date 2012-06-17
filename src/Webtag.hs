@@ -85,7 +85,7 @@ getTagDB = do
 
         (sql, tags) = unzip $ map mksql ts
 
-      stmt <- prepare db $ "SELECT id FROM stories" ++ concat sql
+      stmt <- prepare db $ "SELECT story_id FROM stories" ++ concat sql
       _ <- execute stmt $ map toSql tags
       rs <- fetchAllRows' stmt
       commit db

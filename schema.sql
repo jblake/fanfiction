@@ -28,23 +28,23 @@ create type site as enum
   );
 
 create table stories
-  ( id serial not null
+  ( story_id serial not null
   , filename text
   , pruned boolean not null default 'f'
-  , primary key ( id )
+  , primary key ( story_id )
   );
 
 create table sources
-  ( story int not null references stories on delete cascade
+  ( story_id int not null references stories on delete cascade
   , source site not null
   , ref text not null
-  , primary key ( story, source )
+  , primary key ( story_id, source )
   );
 
 create table tags
-  ( story int not null references stories on delete cascade
+  ( story_id int not null references stories on delete cascade
   , tag text not null
-  , primary key ( story, tag )
+  , primary key ( story_id, tag )
   );
 
 create view all_tags as
@@ -54,14 +54,14 @@ create view all_tags as
   order by uses desc, tag;
 
 create view story_tags as
-  select tags.story, array_agg(tags.tag) as tags
+  select tags.story_id, array_agg(tags.tag) as tags
   from tags
-  group by tags.story;
+  group by tags.story_id;
 
 create view unpruned_story_tags as
   select story_tags.*
   from story_tags
-  inner join stories on (story_tags.story = stories.id)
+  inner join stories using (story_id)
   where not pruned;
 
 create function add_story( ) returns int strict volatile as $$
@@ -73,8 +73,8 @@ create function add_story( ) returns int strict volatile as $$
 
 create function del_story( the_story int ) returns void strict volatile as $$
   begin
-    update stories set pruned = 't' where id = the_story;
-    delete from tags where story = the_story;
+    update stories set pruned = 't' where story_id = the_story;
+    delete from tags where story_id = the_story;
   end;
   $$ language plpgsql;
 
@@ -82,9 +82,9 @@ create function get_filename( the_story int, the_filename text ) returns text st
   declare
     old_filename text;
   begin
-    select filename into strict old_filename from stories where id = the_story;
+    select filename into strict old_filename from stories where story_id = the_story;
     if old_filename is null then
-      update stories set filename = the_filename where id = the_story;
+      update stories set filename = the_filename where story_id = the_story;
       return the_filename;
     else
       return old_filename;
@@ -94,22 +94,22 @@ create function get_filename( the_story int, the_filename text ) returns text st
 
 create function add_source( the_story int, the_source site, the_ref text ) returns void strict volatile as $$
   begin
-    delete from sources where story = the_story and source = the_source;
-    insert into sources ( story, source, ref ) values ( the_story, the_source, the_ref );
+    delete from sources where story_id = the_story and source = the_source;
+    insert into sources ( story_id, source, ref ) values ( the_story, the_source, the_ref );
   end;
   $$ language plpgsql;
 
 create function add_tag( the_story int, the_tag text ) returns void strict volatile as $$
   begin
-    if not exists (select * from tags where story = the_story and tag = the_tag) then
-      insert into tags ( story, tag ) values ( the_story, the_tag );
+    if not exists (select * from tags where story_id = the_story and tag = the_tag) then
+      insert into tags ( story_id, tag ) values ( the_story, the_tag );
     end if;
   end;
   $$ language plpgsql;
 
 create function del_tag( the_story int, the_tag text ) returns void strict volatile as $$
   begin
-    delete from tags where story = the_story and tag = the_tag;
+    delete from tags where story_id = the_story and tag = the_tag;
   end;
   $$ language plpgsql;
 

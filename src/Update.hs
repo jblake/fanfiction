@@ -46,8 +46,8 @@ withDB m = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db ->
 
   fileNameStmt <- prepare db "select get_filename( ?, ? )"
   prunedFileNamesStmt <- prepare db "select filename from stories where pruned and filename is not null"
-  sourcesStmt <- prepare db "select source, ref from sources where story = ? order by source asc"
-  unprunedStoriesStmt <- prepare db "select id from stories where not pruned"
+  sourcesStmt <- prepare db "select source, ref from sources where story_id = ? order by source asc"
+  unprunedStoriesStmt <- prepare db "select story_id from stories where not pruned"
 
   runReaderT m $ DB {..}
 
