@@ -23,9 +23,9 @@ import Data.Time.Clock
 import Network.Browser
 import Network.HTTP
 import Network.URI
+import Safe
 import System.Locale
 import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Tree
 import Text.Regex.Posix
 
 import EPub
@@ -70,10 +70,29 @@ lowerTags (t:ts) = t : lowerTags ts
 closeTags :: [Tag T.Text] -> [Tag T.Text]
 closeTags [] = []
 closeTags ((TagOpen "br" as):ts) = TagOpen "br" as : TagClose "br" : closeTags ts
+closeTags ((TagOpen "img" as):ts) = TagOpen "img" as : TagClose "img" : closeTags ts
 closeTags (t:ts) = t : closeTags ts
 
 fixTags :: [Tag T.Text] -> [Tag T.Text]
 fixTags = closeTags . lowerTags
+
+getTag :: (Tag T.Text -> Bool) -> [Tag T.Text] -> ([(T.Text, T.Text)], [Tag T.Text])
+getTag cond tags = (as, init $ extractTree [o] tags')
+  where
+
+    (o, as, tags') = case dropWhile (not . cond) tags of
+      (TagOpen xo xas):xtags' -> (xo, xas, xtags')
+      [] -> ("x", [], [TagClose "x"])
+      x -> error $ "getTag condition did not find an open tag! (" ++ show x ++ ")"
+
+    extractTree []    _                                           = []
+    extractTree s     (t@(TagOpen h _):ts)                        = t : extractTree (h:s) ts
+    extractTree (h:s) (t@(TagClose h'):ts) | h == h'              = t : extractTree s ts
+                                           | h' `elem` structural = TagClose h : extractTree s (t:ts)
+                                           | otherwise            = extractTree (h:s) ts
+    extractTree s     (t:ts)                                      = t : extractTree s ts
+    extractTree s     []                                          = map TagClose s
+    structural = [ "html", "body", "div" ]
 
 fetchChapter :: Int -> String -> String -> BrowserAction (HandleStream BS.ByteString) (Maybe Info)
 fetchChapter n infoUnique infoStoryID = do
@@ -86,44 +105,52 @@ fetchChapter n infoUnique infoStoryID = do
       now <- liftIO getCurrentTime
 
       let
+
         (thisYear, _, _) = toGregorian $ utctDay now
         thisCentury = 100 * (thisYear `div` 100)
         fixYear y | y + thisCentury > thisYear = y + thisCentury - 100
                   | otherwise                  = y + thisCentury
-        body = tagTree $ fixTags $ parseTags $ T.decodeUtf8 $ convertFuzzy Transliterate "utf-8" "utf-8" $ rspBody resp
-        header = [ t | t@(TagBranch "center" _ _) <- universeTree body ]
-        titleText = case parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "b" _ cs) <- universeTree header ] of
+
+        page = fixTags $ parseTags $ T.decodeUtf8 $ convertFuzzy Transliterate "utf-8" "utf-8" $ rspBody resp
+
+        header = snd $ getTag (~== TagOpen ("div" :: T.Text) [("id", "content")]) page
+
+        titleText = case snd $ getTag (~== TagOpen ("b" :: T.Text) []) header of
           [TagText t] -> t
-          _ -> error $ "Can't parse title in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
-        authorText = case parseTags $ renderTags $ flattenTree $ head [ cs | (TagBranch "a" _ cs) <- universeTree header ] of
+          x -> error $ "Can't parse title in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n ++ " (" ++ show x ++ ")"
+
+        authorText = case snd $ getTag (~== TagOpen ("a" :: T.Text) []) header of
           [TagText t] -> t
           _ -> error $ "Can't parse author in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
-        miscInfo = head [ cs | (TagBranch "div" as cs) <- universeTree body, ("id", "content") `elem` as ]
-        chpTitle = T.strip $ renderTags $ reverse $ takeWhile (~== TagText ("" :: T.Text)) $ dropWhile (~/= TagText ("" :: T.Text)) $ reverse $ flattenTree miscInfo
-        flatMiscInfo = T.unpack $ renderTags [ t | t <- flattenTree miscInfo, t ~== TagText ("" :: T.Text) ]
+
+        chpTitleText = case lastMay $ filter (~== TagText ("" :: T.Text)) header of
+          Just (TagText t) | t /= "" -> t
+          _ -> error $ "Can't parse chapter title in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
+
+        headerString = concat $ [ T.unpack t | TagText t <- filter (~== TagText ("" :: T.Text)) header ]
+
         postedRegexMDY = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
         postedRegexMD = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
         updatedRegexMDY = makeRegex ("U:([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
         updatedRegexMD = makeRegex ("U:([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
-        infoUpdated = case updatedRegexMDY `match` flatMiscInfo of
+
+        infoUpdated = case updatedRegexMDY `match` headerString of
           [[_,m,d,y]] -> UTCTime (fromGregorian (fixYear $ read y) (read m) (read d)) 0
-          _ -> case updatedRegexMD `match` flatMiscInfo of
+          _ -> case updatedRegexMD `match` headerString of
             [[_,m,d]] -> UTCTime (fromGregorian thisYear (read m) (read d)) 0
-            _ -> case postedRegexMDY `match` flatMiscInfo of
+            _ -> case postedRegexMDY `match` headerString of
               [[_,m,d,y]] -> UTCTime (fromGregorian (fixYear $ read y) (read m) (read d)) 0
-              _ -> case postedRegexMD `match` flatMiscInfo of
+              _ -> case postedRegexMD `match` headerString of
                 [[_,m,d]] -> UTCTime (fromGregorian thisYear (read m) (read d)) 0
                 _ -> error $ "Can't parse date in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
-        chpTitleText = case parseTags chpTitle of
-          [TagText t] -> t
-          [] -> ""
-          _ -> error $ "Can't parse chapter title in fanfiction.net/" ++ infoStoryID ++ "/" ++ show n
-        chpContent = T.strip $ renderTags $ flattenTree $ concat [ cs | (TagBranch "div" as cs) <- universeTree body, ("id", "storycontent") `elem` as ]
+
+        chpContent = snd $ getTag (~== TagOpen ("div" :: T.Text) [("id", "storycontent")]) page
+
         infoTitle = T.unpack titleText
         infoAuthor = T.unpack authorText
-        infoChapter = (T.unpack chpTitleText, T.encodeUtf8 $ "<?xml version=\"1.0\" encoding=\"utf-8\" ?><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"><head><meta http-equiv=\"Content-type\" content=\"application/xhtml+xml; charset=utf-8\" /><title>" `T.append` chpTitle `T.append` "</title><style type=\"text/css\">p{text-align:justify;text-justify:newspaper;}</style></head><body>" `T.append` chpContent `T.append` "</body></html>")
+        infoChapter = (T.unpack chpTitleText, T.encodeUtf8 $ "<?xml version=\"1.0\" encoding=\"utf-8\" ?><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"><head><meta http-equiv=\"Content-type\" content=\"application/xhtml+xml; charset=utf-8\" /><title>" `T.append` renderTags [TagText chpTitleText] `T.append` "</title><style type=\"text/css\">div,p{text-align:justify;text-justify:newspaper;}div.sep,hr{background-color:#000;height:1px;width:80%;}</style></head><body>" `T.append` renderTags chpContent `T.append` "</body></html>")
 
-      case header of
+      case chpContent of
         [] -> return Nothing
         _ -> return $ force $ Just $ Info {..}
 
