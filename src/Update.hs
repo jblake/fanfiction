@@ -3,7 +3,7 @@
 
 {-# LANGUAGE RecordWildCards #-}
 
-module Main
+module Update
 where
 
 import Control.Concurrent.QSem
@@ -41,8 +41,8 @@ data DB = DB
 
 type DBM a b = Work (ReaderT DB IO) a b
 
-withDB :: ReaderT DB IO a -> IO a
-withDB m = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
+withDB :: Connection -> ReaderT DB IO a -> IO a
+withDB db m = do
 
   fileNameStmt <- prepare db "select get_filename( ?, ? )"
   prunedFileNamesStmt <- prepare db "select filename from stories where pruned and filename is not null"
@@ -88,10 +88,10 @@ commitChanges = do
   DB {..} <- lift ask
   liftIO $ commit db
 
-main :: IO ()
-main = do
+update :: Connection -> [String] -> IO ()
+update db args = do
 
-  dbWorker <- newWorker 1 withDB
+  dbWorker <- newWorker 1 $ withDB db
 
   epubWorker <- newWorker 1 id
 
@@ -178,8 +178,6 @@ main = do
     let path = "/srv/epubs/" ++ fileName
     exists <- doesFileExist path
     when exists $ removeFile path
-
-  args <- getArgs
 
   uniques <- if null args
     then do

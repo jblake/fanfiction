@@ -6,4 +6,4 @@ set -e
 
 psql -f schema.sql fanfiction fanfiction
 
-dist/build/import/import
+./ff import

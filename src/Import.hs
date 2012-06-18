@@ -3,16 +3,16 @@
 
 {-# LANGUAGE RecordWildCards #-}
 
-module Main
+module Import
 where
 
 import Control.Monad
 import Database.HDBC
-import Database.HDBC.PostgreSQL
+import Database.HDBC.PostgreSQL as PG
 import Database.HDBC.Sqlite3
 
-main :: IO ()
-main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \pg -> do
+importStories :: PG.Connection -> IO ()
+importStories pg = do
 
   sq <- connectSqlite3 "/srv/tags/tags.db"
 

@@ -46,7 +46,7 @@ getTagDB = do
   db <- connectPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp"
 
   allTagsStmt  <- prepare db "SELECT tag FROM all_tags ORDER BY uses DESC, tag ASC"
-  itemTagsStmt <- prepare db "SELECT all_tags.tag, tags.tag IS NOT NULL FROM all_tags LEFT OUTER JOIN tags ON ( all_tags.tag = tags.tag AND story = ? ) ORDER BY uses DESC, tag ASC"
+  itemTagsStmt <- prepare db "SELECT all_tags.tag, tags.tag IS NOT NULL FROM all_tags LEFT OUTER JOIN tags ON ( all_tags.tag = tags.tag AND story_id = ? ) ORDER BY uses DESC, tag ASC"
   setTagStmt   <- prepare db "SELECT add_tag( ?, ? )"
   clearTagStmt <- prepare db "SELECT del_tag( ?, ? )"
 

@@ -8,7 +8,7 @@ until ls "/media/nook/My Files" > /dev/null 2>&1; do file -s /dev/sdc > /dev/nul
 
 rsync --delete --inplace --recursive --times --verbose --existing /srv/epubs/ "/media/nook/My Files/Books/fanfiction/"
 
-time -p dist/build/update/update +RTS -N -RTS "$@"
+time -p ./ff update +RTS -N -RTS "$@"
 
 rsync --delete --inplace --recursive --times --verbose /srv/epubs/ "/media/nook/My Files/Books/fanfiction/"
 
