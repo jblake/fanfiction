@@ -38,6 +38,7 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
   addSourceStmt <- prepare db "select add_source( ?, ?, ? )"
   addTagStmt <- prepare db "select add_tag( ?, ? )"
   delTagStmt <- prepare db "select del_tag( ?, ? )"
+  getTagsStmt <- prepare db "select tag from tags where story_id = ? order by tag asc"
   searchStmt <- prepare db "select story_id from story_tags where tags @> ? and not tags && ?"
   pruneStmt <- prepare db "select del_story( ? )"
 
@@ -59,6 +60,9 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
           execute delTagStmt [toSql storyID, toSql tag]
           fetchAllRows' delTagStmt
       commit db
+      execute getTagsStmt [toSql storyID]
+      rs <- fetchAllRows' getTagsStmt
+      forM_ rs $ \[tag] -> putStrLn $ fromSql tag
 
     searchTags :: [Tag] -> IO ()
     searchTags tags = do
