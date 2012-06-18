@@ -7,10 +7,12 @@
 module Fetch.FanfictionNet
   ( peek
   , fetch
+  , parse
   )
 where
 
 import Codec.Text.IConv
+import Control.Applicative
 import Control.DeepSeq
 import Control.Monad
 import Control.Monad.IO.Class
@@ -155,3 +157,11 @@ fetchChapter n infoUnique infoStoryID = do
         _ -> return $ force $ Just $ Info {..}
 
     _ -> return Nothing
+
+parse :: String -> Maybe String
+parse url = do
+  [[_,_,ref]] <- matchM storyPage url
+  return ref
+  where
+
+    storyPage = makeRegex ("^http://(www\\.|m\\.|)fanfiction.net/s/([0-9]+)" :: String) :: Regex

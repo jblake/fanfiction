@@ -4,12 +4,14 @@
 module Main
 where
 
+import Control.Applicative
 import Control.Monad
 import Data.List
 import Database.HDBC
 import Database.HDBC.PostgreSQL
 
 import CommandLine
+import qualified Fetch.FanfictionNet as FFNet
 import Import
 import Update
 
@@ -31,10 +33,15 @@ foldrTag :: Tag -> ([String], [String]) -> ([String], [String])
 foldrTag (Set tag)   (set, clear) = (tag : set, clear)
 foldrTag (Clear tag) (set, clear) = (set, tag : clear)
 
+parseURL :: String -> Maybe (String, String)
+parseURL url = tryFFNet
+  where
+    tryFFNet = (\u -> ("fanfiction.net",u)) <$> FFNet.parse url
+
 main :: IO ()
 main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
 
-  addStoryStmt <- prepare db "select add_source( add_story( ), ?, ? )"
+  addStoryStmt <- prepare db "select add_story_source( ?, ? )"
   addSourceStmt <- prepare db "select add_source( ?, ?, ? )"
   addTagStmt <- prepare db "select add_tag( ?, ? )"
   delTagStmt <- prepare db "select del_tag( ?, ? )"
@@ -45,10 +52,26 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
   let
 
     addSources :: String -> [String] -> IO ()
-    addSources storyID sources = putStrLn $ "addSources " ++ show storyID ++ " " ++ show sources
+    addSources storyID sources = do
+      forM_ sources $ \source -> do
+        case parseURL source of
+          Just (site, ref) -> do
+            execute addSourceStmt [toSql storyID, toSql site, toSql ref]
+            fetchAllRows' addSourceStmt
+            return ()
+          Nothing -> putStrLn $ "Couldn't parse source URL: " ++ source
+      commit db
 
     addStories :: [String] -> IO ()
-    addStories sources = putStrLn $ "addStories " ++ show sources
+    addStories sources = do
+      forM_ sources $ \source -> do
+        case parseURL source of
+          Just (site, ref) -> do
+            execute addStoryStmt [toSql site, toSql ref]
+            [[idSql]] <- fetchAllRows' addStoryStmt
+            putStrLn $ source ++ " -> " ++ fromSql idSql
+          Nothing -> putStrLn $ "Couldn't parse source URL: " ++ source
+      commit db
 
     setTags :: String -> [Tag] -> IO ()
     setTags storyID tags = do

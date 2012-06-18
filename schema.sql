@@ -12,6 +12,7 @@ drop function add_story( ) cascade;
 drop function del_story( int ) cascade;
 drop function get_filename( int, text ) cascade;
 drop function add_source( int, site, text ) cascade;
+drop function add_story_source( site, text ) cascade;
 drop function add_tag( int, text ) cascade;
 drop function del_tag( int, text ) cascade;
 
@@ -67,7 +68,7 @@ create view unpruned_story_tags as
 create function add_story( ) returns int strict volatile as $$
   begin
     insert into stories default values;
-    return currval( 'stories_id_seq' );
+    return currval( 'stories_story_id_seq' );
   end;
   $$ language plpgsql;
 
@@ -96,6 +97,19 @@ create function add_source( the_story int, the_source site, the_ref text ) retur
   begin
     delete from sources where story_id = the_story and source = the_source;
     insert into sources ( story_id, source, ref ) values ( the_story, the_source, the_ref );
+  end;
+  $$ language plpgsql;
+
+create function add_story_source( the_source site, the_ref text ) returns int strict volatile as $$
+  declare
+    the_story int;
+  begin
+    select story_id into the_story from sources where source = the_source and ref = the_ref;
+    if the_story is null then
+      select add_story( ) into the_story;
+      perform add_source( the_story, the_source, the_ref );
+    end if;
+    return the_story;
   end;
   $$ language plpgsql;
 
