@@ -11,3 +11,5 @@ time -p ./ff update +RTS -N -RTS "$@"
 rsync --delete --inplace --recursive --times --verbose /srv/epubs/ "/media/nook/My Files/Books/fanfiction/"
 
 sudo umount /media/nook
+
+beep
