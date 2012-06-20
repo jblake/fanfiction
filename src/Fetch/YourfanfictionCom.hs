@@ -161,4 +161,4 @@ parse url = do
   return ref
   where
 
-    storyPage = makeRegex ("^http://(www\\.|)yourfanfiction.com/viewstory.php?(.+&|)sid=([0-9]+)" :: String) :: Regex
+    storyPage = makeRegex ("^http://(www\\.|)yourfanfiction.com/viewstory.php\\?(.+&|)sid=([0-9]+)" :: String) :: Regex
