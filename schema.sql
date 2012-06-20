@@ -20,12 +20,16 @@ begin;
 
 -- This type should be ordered such that better sources are earlier in the list.
 create type site as enum
-  ( 'fanfiction.net'
-  , 'ficsite.com'
+  -- Uncensored sites.
+  ( 'ficsite.com'
   , 'ficwad.com'
   , 'hpfanficarchive.com'
   , 'patronuscharm.net'
   , 'portkey.org'
+  , 'yourfanfiction.com'
+  -- Censored sites.
+  , 'fanfiction.net'
+  -- Impossible-to-parse-well sites.
   );
 
 create table stories
