@@ -150,7 +150,7 @@ fetchChapter n infoUnique infoStoryID = do
 
         infoTitle = T.unpack titleText
         infoAuthor = T.unpack authorText
-        infoChapter = (T.unpack chpTitleText, T.encodeUtf8 $ "<?xml version=\"1.0\" encoding=\"utf-8\" ?><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"><head><meta http-equiv=\"Content-type\" content=\"application/xhtml+xml; charset=utf-8\" /><title>" `T.append` renderTags [TagText chpTitleText] `T.append` "</title><style type=\"text/css\">div,p{text-align:justify;text-justify:newspaper;}div.sep,hr{background-color:#000;height:1px;width:80%;}</style></head><body>" `T.append` renderTags chpContent `T.append` "</body></html>")
+        infoChapter = (T.unpack chpTitleText, T.encodeUtf8 $ "<?xml version=\"1.0\" encoding=\"utf-8\" ?><html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\"><head><meta http-equiv=\"Content-type\" content=\"application/xhtml+xml; charset=utf-8\" /><title>" `T.append` renderTags [TagText chpTitleText] `T.append` "</title><style type=\"text/css\">div,p{text-align:justify;text-justify:newspaper;}div.sep,hr{background-color:#000;height:1px;width:100%;}</style></head><body>" `T.append` renderTags chpContent `T.append` "</body></html>")
 
       case chpContent of
         [] -> return Nothing
