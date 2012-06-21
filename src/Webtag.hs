@@ -80,8 +80,8 @@ getTagDB = do
 
       let
 
-        mksql (Left t)  = (" EXCEPT    SELECT story FROM tags WHERE tag = ?", t)
-        mksql (Right t) = (" INTERSECT SELECT story FROM tags WHERE tag = ?", t)
+        mksql (Left t)  = (" EXCEPT    SELECT story_id FROM tags WHERE tag = ?", t)
+        mksql (Right t) = (" INTERSECT SELECT story_id FROM tags WHERE tag = ?", t)
 
         (sql, tags) = unzip $ map mksql ts
 
