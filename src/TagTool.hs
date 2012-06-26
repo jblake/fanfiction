@@ -48,7 +48,7 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
   addTagStmt <- prepare db "select add_tag( ?, ? )"
   delTagStmt <- prepare db "select del_tag( ?, ? )"
   getTagsStmt <- prepare db "select tag from tags where story_id = ? order by tag asc"
-  searchStmt <- prepare db "select story_id from story_tags where tags @> ? and not tags && ?"
+  searchStmt <- prepare db "select story_id, filename from story_tags inner join stories using ( story_id ) where tags @> ? and not tags && ?"
   pruneStmt <- prepare db "select del_story( ? )"
 
   let
@@ -94,7 +94,11 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
       let (setTags, clearTags) = foldr foldrTag ([],[]) tags
       execute searchStmt [toSql $ "{" ++ intercalate "," (map show setTags) ++ "}", toSql $ "{" ++ intercalate "," (map show clearTags) ++ "}"]
       rs <- fetchAllRows' searchStmt
-      forM_ rs $ \[storyID] -> putStrLn $ fromSql storyID
+      forM_ rs $ \[storyIDSql, maybeFileNameSql] -> do
+        let
+          storyID = fromSql storyIDSql
+          maybeFileName = fromSql maybeFileNameSql
+        putStrLn $ storyID ++ "\t" ++ maybe "(never downloaded)" id maybeFileName
 
     pruneStories :: [String] -> IO ()
     pruneStories storyIDs = do
