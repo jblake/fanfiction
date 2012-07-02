@@ -46,6 +46,7 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
   addStoryStmt <- prepare db "select add_story_source( ?, ? )"
   addSourceStmt <- prepare db "select add_source( ?, ?, ? )"
   addTagStmt <- prepare db "select add_tag( ?, ? )"
+  allTagsStmt <- prepare db "select tag, uses from all_tags"
   delTagStmt <- prepare db "select del_tag( ?, ? )"
   getTagsStmt <- prepare db "select tag from tags where story_id = ? order by tag asc"
   searchStmt <- prepare db "select story_id, filename from story_tags inner join stories using ( story_id ) where tags @> ? and not tags && ?"
@@ -74,6 +75,13 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
             putStrLn $ source ++ " -> " ++ fromSql idSql
           Nothing -> putStrLn $ "Couldn't parse source URL: " ++ source
       commit db
+
+    lsTags :: IO ()
+    lsTags = do
+      execute allTagsStmt []
+      rs <- fetchAllRows' allTagsStmt
+      forM_ rs $ \[tagSql, usesSql] -> do
+        putStrLn $ fromSql tagSql ++ "\t" ++ fromSql usesSql
 
     setTags :: String -> [Tag] -> IO ()
     setTags storyID tags = do
@@ -112,6 +120,7 @@ main = withPostgreSQL "dbname=fanfiction user=fanfiction host=/tmp" $ \db -> do
       [ Cmd "add-source" "Add sources as alternates for a story" addSources :@ "storyID" :@/ "URL"
       , Cmd "add" "Add a new story for each source provided" addStories :@/ "URL"
       , Cmd "import" "Import stories and tags from the legacy sqlite database" (importStories db)
+      , Cmd "lstags" "List all tags and their usage counts" lsTags
       , Cmd "prune" "Prune stories" pruneStories :@/ "storyID"
       , Cmd "tag" "Tag or untag a story" setTags :@ "storyID" :@@/ "tag|+tag|-tag|!tag"
       , Cmd "search" "Search for stories that match a set of tags" searchTags :@@/ "tag|+tag|-tag|!tag"
