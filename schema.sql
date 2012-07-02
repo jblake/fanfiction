@@ -21,11 +21,13 @@ begin;
 -- This type should be ordered such that better sources are earlier in the list.
 create type site as enum
   -- Uncensored sites.
-  ( 'ficsite.com'
+  ( 'fanficauthors.net'
+  , 'ficsite.com'
   , 'ficwad.com'
   , 'hpfanficarchive.com'
   , 'patronuscharm.net'
   , 'portkey.org'
+  , 'tthfanfic.org'
   , 'yourfanfiction.com'
   -- Censored sites.
   , 'fanfiction.net'
