@@ -112,7 +112,8 @@ update db args = do
     writeEPub info epub path = lift $ do
       putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
       createDirectoryIfMissing False "/srv/epubs"
-      BS.writeFile path $ compileEPub epub
+      epubData <- compileEPub epub
+      BS.writeFile path epubData
       let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
       setFileTimes path epochTime epochTime
 

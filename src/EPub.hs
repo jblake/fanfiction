@@ -20,8 +20,8 @@ import Data.Time.Clock
 import Data.Time.Clock.POSIX
 import Text.XML.Light
 
-instance NFData ByteString where
-  rnf bs = rnf $ Data.ByteString.Lazy.length bs
+import Cover
+import Fetch
 
 data EPub = EPub
   { uniqueID :: String
@@ -52,9 +52,12 @@ text t = modify $ \x -> x { elContent = elContent x ++ [Text $ CData CDataText t
 attr :: String -> String -> XML ()
 attr name val = modify $ add_attr $ Attr (unqual name) val
 
-compileEPub :: EPub -> ByteString
-compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArchive (mimetype : containerxml : bookopf : bookncx : chapterEntries)
-  where
+compileEPub :: EPub -> IO ByteString
+compileEPub (EPub {..}) = do
+
+  coverData <- makeCover uniqueID title author
+
+  let
 
     modTime = round $ utcTimeToPOSIXSeconds modified
 
@@ -80,6 +83,9 @@ compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArc
           attr "id" "BookId"
           text uniqueID
         child "dc:creator" $ text author
+        child "meta" $ do
+          attr "name" "cover"
+          attr "content" "cover"
 
       child "manifest" $ do
 
@@ -87,6 +93,12 @@ compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArc
           attr "id" "ncx"
           attr "href" "book.ncx"
           attr "media-type" "application/x-dtbncx+xml"
+
+        child "item" $ do
+          attr "id" "cover"
+          attr "href" "cover.png"
+          attr "media-type" "image/png"
+          attr "properties" "cover-image"
 
         forM_ (Prelude.zip [1..] chapters) $ \(n, (ctitle, content)) -> do
           child "item" $ do
@@ -128,4 +140,8 @@ compileEPub (EPub {..}) = fromArchive $ Prelude.foldr addEntryToArchive emptyArc
             child "navLabel" $ child "text" $ text ctitle
             child "content" $ attr "src" $ "chapter" ++ show n ++ ".xhtml"
 
+    cover = toEntry "OPS/cover.png" modTime coverData
+
     chapterEntries = [ toEntry ("OPS/chapter" ++ show n ++ ".xhtml") modTime $ content |  (n, (ctitle, content)) <- Prelude.zip [1..] chapters ]
+
+  return $ fromArchive $ Prelude.foldr addEntryToArchive emptyArchive (mimetype : containerxml : bookopf : bookncx : cover : chapterEntries)

@@ -10,8 +10,6 @@ import Control.DeepSeq
 import qualified Data.ByteString.Lazy as BS
 import Data.Time.Clock
 
-import EPub
-
 data Info = Info
   { infoUnique :: String
   , infoStoryID :: String
@@ -20,6 +18,9 @@ data Info = Info
   , infoUpdated :: UTCTime
   , infoChapter :: (String, BS.ByteString)
   }
+
+instance NFData BS.ByteString where
+  rnf bs = rnf $ BS.length bs
 
 instance NFData Info where
   rnf (Info {..}) = infoUnique `deepseq` infoStoryID `deepseq` infoTitle `deepseq` infoAuthor `deepseq` infoUpdated `deepseq` infoChapter `deepseq` ()
