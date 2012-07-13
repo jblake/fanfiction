@@ -72,6 +72,7 @@ lowerTags (t:ts) = t : lowerTags ts
 closeTags :: [Tag T.Text] -> [Tag T.Text]
 closeTags [] = []
 closeTags ((TagOpen "br" as):ts) = TagOpen "br" as : TagClose "br" : closeTags ts
+closeTags ((TagOpen "hr" as):ts) = TagOpen "hr" [] : TagClose "hr" : closeTags ts
 closeTags ((TagOpen "img" as):ts) = TagOpen "img" as : TagClose "img" : closeTags ts
 closeTags (t:ts) = t : closeTags ts
 
@@ -131,10 +132,10 @@ fetchChapter n infoUnique infoStoryID = do
 
         headerString = concat $ [ T.unpack t | TagText t <- filter (~== TagText ("" :: T.Text)) header ]
 
-        postedRegexMDY = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
-        postedRegexMD = makeRegex ("P:([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
-        updatedRegexMDY = makeRegex ("U:([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
-        updatedRegexMD = makeRegex ("U:([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
+        postedRegexMDY = makeRegex ("Published: ([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
+        postedRegexMD = makeRegex ("Published: ([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
+        updatedRegexMDY = makeRegex ("Updated: ([0-9]{1,2})-([0-9]{1,2})-([0-9]{2})" :: String) :: Regex
+        updatedRegexMD = makeRegex ("Updated: ([0-9]{1,2})-([0-9]{1,2})" :: String) :: Regex
 
         infoUpdated = case updatedRegexMDY `match` headerString of
           [[_,m,d,y]] -> UTCTime (fromGregorian (fixYear $ read y) (read m) (read d)) 0
