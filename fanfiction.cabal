@@ -13,6 +13,12 @@ executable ff
  ghc-options: -threaded
  hs-source-dirs: src
 
+executable ffs
+ main-is: Shell.hs
+ build-depends: base, editline, HDBC, HDBC-postgresql, split
+ hs-source-dirs: src
+ pkgconfig-depends: libedit
+
 executable webtag
  main-is: Webtag.hs
  build-depends: base, cgi, directory, fastcgi, filepath, HDBC, HDBC-postgresql, json, mtl, split, unix
