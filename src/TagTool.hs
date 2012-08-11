@@ -12,6 +12,7 @@ import Database.HDBC.PostgreSQL
 
 import CommandLine
 import qualified Fetch.FanfictionNet as FFNet
+import qualified Fetch.HpfanficarchiveCom as HPFFACom
 import qualified Fetch.YourfanfictionCom as YFFCom
 import Import
 import Update
@@ -35,9 +36,10 @@ foldrTag (Set tag)   (set, clear) = (tag : set, clear)
 foldrTag (Clear tag) (set, clear) = (set, tag : clear)
 
 parseURL :: String -> Maybe (String, String)
-parseURL url = tryFFNet <|> tryYFFCom
+parseURL url = tryFFNet <|> tryHPFFACom <|> tryYFFCom
   where
     tryFFNet = (\u -> ("fanfiction.net",u)) <$> FFNet.parse url
+    tryHPFFACom = (\u -> ("hpfanficarchive.com",u)) <$> HPFFACom.parse url
     tryYFFCom = (\u -> ("yourfanfiction.com",u)) <$> YFFCom.parse url
 
 main :: IO ()

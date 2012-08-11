@@ -30,6 +30,7 @@ import Concurrent
 import EPub
 import Fetch
 import Fetch.FanfictionNet as FFNet
+import Fetch.HpfanficarchiveCom as HPFFACom
 import Fetch.YourfanfictionCom as YFFCom
 
 data DB = DB
@@ -97,6 +98,11 @@ update db args = do
   epubWorker <- newWorker 1 id
 
   ffnetWorker <- newWorker 4 $ \m -> browse $ do
+    setAllowRedirects True
+    setOutHandler $ const $ return ()
+    m
+
+  hpffacomWorker <- newWorker 4 $ \m -> browse $ do
     setAllowRedirects True
     setOutHandler $ const $ return ()
     m
@@ -169,6 +175,20 @@ update db args = do
 
         Nothing -> do
           liftIO $ putStrLn $ "!   " ++ unique ++ ": Invalid source ffnet/" ++ ref
+          doFetch unique sources
+
+    doFetch unique (("hpfanficarchive.com", ref):sources) = pass hpffacomWorker $ do
+      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining hpffacom/" ++ ref
+
+      maybeInfo <- lift $ HPFFACom.peek unique ref
+      case maybeInfo of
+
+        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info hpffacomWorker $ do
+          liftIO $ putStrLn $ "    " ++ unique ++ ": Downloading hpffacom/" ++ ref
+          lift $ HPFFACom.fetch info
+
+        Nothing -> do
+          liftIO $ putStrLn $ "!   " ++ unique ++ ": Invalid source hpffacom/" ++ ref
           doFetch unique sources
 
     doFetch unique (("yourfanfiction.com", ref):sources) = pass yffcomWorker $ do
