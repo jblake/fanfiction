@@ -178,9 +178,7 @@ update db args = do
               epub <- fetchAct
               DS.deepseq epub $ pass epubWorker $ writeEPub info epub path
 
-            else pass dbWorker $ do
-              logSuccess (infoUnique info) "Does not need update."
-              liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change (last updated " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
+            else liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change (last updated " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
 
     doFetch :: (MonadIO m) => String -> [(String, String)] -> Work m () ()
 
