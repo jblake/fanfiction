@@ -1,6 +1,7 @@
 drop type site cascade;
 
 drop table stories cascade;
+drop table story_logs cascade;
 drop table sources cascade;
 drop table tags cascade;
 
@@ -15,6 +16,8 @@ drop function add_source( int, site, text ) cascade;
 drop function add_story_source( site, text ) cascade;
 drop function add_tag( int, text ) cascade;
 drop function del_tag( int, text ) cascade;
+drop function log_success( int, text ) cascade;
+drop function log_failure( int, text ) cascade;
 
 begin;
 
@@ -40,6 +43,16 @@ create table stories
   , pruned boolean not null default 'f'
   , primary key ( story_id )
   );
+
+create table story_logs
+  ( story_id int not null references stories on delete cascade
+  , log_time timestamp without time zone not null
+  , success boolean not null
+  , annotation text
+  );
+
+create index story_logs_story_id_log_time on story_logs ( story_id, log_time );
+create index story_logs_success_log_time on story_logs ( success, log_time );
 
 create table sources
   ( story_id int not null references stories on delete cascade
@@ -130,6 +143,18 @@ create function add_tag( the_story int, the_tag text ) returns void strict volat
 create function del_tag( the_story int, the_tag text ) returns void strict volatile as $$
   begin
     delete from tags where story_id = the_story and tag = the_tag;
+  end;
+  $$ language plpgsql;
+
+create function log_success( the_story int, the_annotation text ) returns void volatile as $$
+  begin
+    insert into story_logs ( story_id, log_time, success, annotation ) values ( the_story, 'now', 't', the_annotation );
+  end;
+  $$ language plpgsql;
+
+create function log_failure( the_story int, the_annotation text ) returns void volatile as $$
+  begin
+    insert into story_logs ( story_id, log_time, success, annotation ) values ( the_story, 'now', 'f', the_annotation );
   end;
   $$ language plpgsql;
 

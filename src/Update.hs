@@ -39,6 +39,8 @@ data DB = DB
   , prunedFileNamesStmt :: Statement
   , sourcesStmt :: Statement
   , unprunedStoriesStmt :: Statement
+  , logSuccessStmt :: Statement
+  , logFailureStmt :: Statement
   }
 
 type DBM a b = Work (ReaderT DB IO) a b
@@ -50,6 +52,8 @@ withDB db m = do
   prunedFileNamesStmt <- prepare db "select filename from stories where pruned and filename is not null"
   sourcesStmt <- prepare db "select source, ref from sources where story_id = ? order by source asc"
   unprunedStoriesStmt <- prepare db "select story_id from stories where not pruned"
+  logSuccessStmt <- prepare db "select log_success( ?, ? )"
+  logFailureStmt <- prepare db "select log_failure( ?, ? )"
 
   runReaderT m $ DB {..}
 
@@ -84,6 +88,22 @@ getUnprunedStories = do
     execute unprunedStoriesStmt []
     rs <- fetchAllRows' unprunedStoriesStmt
     return [ fromSql unique | [unique] <- rs ]
+
+logSuccess :: String -> Maybe String -> DBM a ()
+logSuccess unique annotation = do
+  DB {..} <- lift ask
+  liftIO $ do
+    execute logSuccessStmt [toSql unique, toSql annotation]
+    fetchAllRows' logSuccessStmt
+    return ()
+
+logFailure :: String -> Maybe String -> DBM a ()
+logFailure unique annotation = do
+  DB {..} <- lift ask
+  liftIO $ do
+    execute logFailureStmt [toSql unique, toSql annotation]
+    fetchAllRows' logFailureStmt
+    return ()
 
 commitChanges :: DBM a ()
 commitChanges = do
@@ -122,6 +142,7 @@ update db args = do
       BS.writeFile path epubData
       let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
       setFileTimes path epochTime epochTime
+      pass dbWorker $ logSuccess (infoUnique info) "Downloaded new update."
 
     checkUpdated :: (MonadIO m) => Info -> Worker m -> Work m () EPub -> DBM () ()
     checkUpdated info fetchWorker fetchAct = do
@@ -157,11 +178,15 @@ update db args = do
               epub <- fetchAct
               DS.deepseq epub $ pass epubWorker $ writeEPub info epub path
 
-            else liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change (last updated " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
+            else pass dbWorker $ do
+              logSuccess (infoUnique info) "Does not need update."
+              liftIO $ putStrLn $ "    " ++ infoUnique info ++ ": No change (last updated " ++ formatTime defaultTimeLocale "%F" (infoUpdated info) ++ ")"
 
     doFetch :: (MonadIO m) => String -> [(String, String)] -> Work m () ()
 
-    doFetch unique [] = liftIO $ putStrLn $ "!!! " ++ unique ++ ": No sources"
+    doFetch unique [] = pass dbWorker $ do
+      logFailure unique "No sources."
+      liftIO $ putStrLn $ "!!! " ++ unique ++ ": No sources"
 
     doFetch unique (("fanfiction.net", ref):sources) = pass ffnetWorker $ do
       liftIO $ putStrLn $ "    " ++ unique ++ ": Examining ffnet/" ++ ref
