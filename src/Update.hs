@@ -117,17 +117,7 @@ update db args = do
 
   epubWorker <- newWorker 1 id
 
-  ffnetWorker <- newWorker 4 $ \m -> browse $ do
-    setAllowRedirects True
-    setOutHandler $ const $ return ()
-    m
-
-  hpffacomWorker <- newWorker 4 $ \m -> browse $ do
-    setAllowRedirects True
-    setOutHandler $ const $ return ()
-    m
-
-  yffcomWorker <- newWorker 4 $ \m -> browse $ do
+  webWorker <- newWorker 4 $ \m -> browse $ do
     setAllowRedirects True
     setOutHandler $ const $ return ()
     m
@@ -135,14 +125,15 @@ update db args = do
   let
 
     writeEPub :: Info -> EPub -> String -> Work IO () ()
-    writeEPub info epub path = lift $ do
-      putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
-      createDirectoryIfMissing False "/srv/epubs"
-      epubData <- compileEPub epub
-      BS.writeFile path epubData
-      let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
-      setFileTimes path epochTime epochTime
-      pass dbWorker $ logSuccess (infoUnique info) "Downloaded new update."
+    writeEPub info epub path = do
+      lift $ do
+        putStrLn $ "    " ++ infoUnique info ++ ": Writing " ++ path
+        createDirectoryIfMissing False "/srv/epubs"
+        epubData <- compileEPub epub
+        BS.writeFile path epubData
+        let epochTime = CTime $ round $ utcTimeToPOSIXSeconds $ infoUpdated info
+        setFileTimes path epochTime epochTime
+      pass dbWorker $ logSuccess (infoUnique info) $ Just "Downloaded new update."
 
     checkUpdated :: (MonadIO m) => Info -> Worker m -> Work m () EPub -> DBM () ()
     checkUpdated info fetchWorker fetchAct = do
@@ -183,16 +174,16 @@ update db args = do
     doFetch :: (MonadIO m) => String -> [(String, String)] -> Work m () ()
 
     doFetch unique [] = pass dbWorker $ do
-      logFailure unique "No sources."
+      logFailure unique $ Just "No sources."
       liftIO $ putStrLn $ "!!! " ++ unique ++ ": No sources"
 
-    doFetch unique (("fanfiction.net", ref):sources) = pass ffnetWorker $ do
+    doFetch unique (("fanfiction.net", ref):sources) = pass webWorker $ do
       liftIO $ putStrLn $ "    " ++ unique ++ ": Examining ffnet/" ++ ref
 
       maybeInfo <- lift $ FFNet.peek unique ref
       case maybeInfo of
 
-        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info ffnetWorker $ do
+        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info webWorker $ do
           liftIO $ putStrLn $ "    " ++ unique ++ ": Downloading ffnet/" ++ ref
           lift $ FFNet.fetch info
 
@@ -200,13 +191,13 @@ update db args = do
           liftIO $ putStrLn $ "!   " ++ unique ++ ": Invalid source ffnet/" ++ ref
           doFetch unique sources
 
-    doFetch unique (("hpfanficarchive.com", ref):sources) = pass hpffacomWorker $ do
+    doFetch unique (("hpfanficarchive.com", ref):sources) = pass webWorker $ do
       liftIO $ putStrLn $ "    " ++ unique ++ ": Examining hpffacom/" ++ ref
 
       maybeInfo <- lift $ HPFFACom.peek unique ref
       case maybeInfo of
 
-        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info hpffacomWorker $ do
+        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info webWorker $ do
           liftIO $ putStrLn $ "    " ++ unique ++ ": Downloading hpffacom/" ++ ref
           lift $ HPFFACom.fetch info
 
@@ -214,13 +205,13 @@ update db args = do
           liftIO $ putStrLn $ "!   " ++ unique ++ ": Invalid source hpffacom/" ++ ref
           doFetch unique sources
 
-    doFetch unique (("yourfanfiction.com", ref):sources) = pass yffcomWorker $ do
+    doFetch unique (("yourfanfiction.com", ref):sources) = pass webWorker $ do
       liftIO $ putStrLn $ "    " ++ unique ++ ": Examining yffcom/" ++ ref
 
       maybeInfo <- lift $ YFFCom.peek unique ref
       case maybeInfo of
 
-        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info yffcomWorker $ do
+        Just info -> DS.deepseq info $ pass dbWorker $ checkUpdated info webWorker $ do
           liftIO $ putStrLn $ "    " ++ unique ++ ": Downloading yffcom/" ++ ref
           lift $ YFFCom.fetch info
 
