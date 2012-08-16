@@ -8,6 +8,7 @@ drop table tags cascade;
 drop view all_tags cascade;
 drop view story_tags cascade;
 drop view unpruned_story_tags cascade;
+drop view notable_logs cascade;
 
 drop function add_story( ) cascade;
 drop function del_story( int ) cascade;
@@ -83,6 +84,12 @@ create view unpruned_story_tags as
   from story_tags
   inner join stories using (story_id)
   where not pruned;
+
+create view notable_logs as
+  select story_id, log_time, annotation
+  from story_logs
+  inner join stories using (story_id)
+  where not pruned and not success;
 
 create function add_story( ) returns int strict volatile as $$
   begin
