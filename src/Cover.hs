@@ -16,7 +16,7 @@ makeCover infoUnique infoTitle infoAuthor textSize = do
 
   let
     -- The color of the background is based on how long the story is.
-    color = (1/4) + (3/4) * log (fromIntegral textSize) / log (10^9)
+    color = log (fromIntegral textSize) / log (10^9)
 
     -- This is the size of an A5 sheet in mm.
     width  = 148
