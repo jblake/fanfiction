@@ -179,7 +179,7 @@ update db args = do
       liftIO $ putStrLn $ "!!! " ++ unique ++ ": No sources"
 
     doFetch unique (("fanfiction.net", ref):sources) = pass webWorker $ do
-      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining ffnet/" ++ ref
+--      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining ffnet/" ++ ref
 
       maybeInfo <- lift $ FFNet.peek unique ref
       case maybeInfo of
@@ -193,7 +193,7 @@ update db args = do
           doFetch unique sources
 
     doFetch unique (("hpfanficarchive.com", ref):sources) = pass webWorker $ do
-      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining hpffacom/" ++ ref
+--      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining hpffacom/" ++ ref
 
       maybeInfo <- lift $ HPFFACom.peek unique ref
       case maybeInfo of
@@ -207,7 +207,7 @@ update db args = do
           doFetch unique sources
 
     doFetch unique (("yourfanfiction.com", ref):sources) = pass webWorker $ do
-      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining yffcom/" ++ ref
+--      liftIO $ putStrLn $ "    " ++ unique ++ ": Examining yffcom/" ++ ref
 
       maybeInfo <- lift $ YFFCom.peek unique ref
       case maybeInfo of
