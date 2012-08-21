@@ -5,15 +5,19 @@ module Cover
 where
 
 import qualified Data.ByteString.Lazy as BS
+import Data.Int
 import Graphics.Rendering.Cairo
 import Graphics.Rendering.Pango
 import System.IO
 import System.IO.Temp
 
-makeCover :: String -> String -> String -> IO BS.ByteString
-makeCover infoUnique infoTitle infoAuthor = do
+makeCover :: String -> String -> String -> Int64 -> IO BS.ByteString
+makeCover infoUnique infoTitle infoAuthor textSize = do
 
   let
+    -- The color of the background is based on how long the story is.
+    color = (1/4) + (3/4) * log (fromIntegral textSize) / log (10^9)
+
     -- This is the size of an A5 sheet in mm.
     width  = 148
     height = 210
@@ -59,7 +63,7 @@ makeCover infoUnique infoTitle infoAuthor = do
         pango <- liftIO $ cairoCreateContext Nothing
         liftIO $ cairoContextSetResolution pango 72 -- A point being, by definition, 1/72 inch.
 
-        setSourceRGB 0 0.5 0.5
+        setSourceRGB 0 color color
         paint
 
         setSourceRGB 0 0 0

@@ -55,7 +55,11 @@ attr name val = modify $ add_attr $ Attr (unqual name) val
 compileEPub :: EPub -> IO ByteString
 compileEPub (EPub {..}) = do
 
-  coverData <- makeCover uniqueID title author
+  let
+
+    textSize = sum [ Data.ByteString.Lazy.length $ snd c | c <- chapters ]
+
+  coverData <- makeCover uniqueID title author textSize
 
   let
 
