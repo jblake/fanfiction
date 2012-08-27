@@ -3,6 +3,7 @@
 set -e
 
 file -s /dev/sdc > /dev/null 2>&1 || true
+sleep 5
 
 until ls "/media/nook/My Files" > /dev/null 2>&1; do
 
@@ -21,7 +22,7 @@ Sitting around doing nothing is boring.
 *crickets*
 END
 
-  sleep 1
+  sleep 5
 
 done
 
