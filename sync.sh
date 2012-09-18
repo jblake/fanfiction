@@ -11,7 +11,7 @@ until ls "/media/nook/My Files" > /dev/null 2>&1; do
 
   rl -c 1 << END
 Waiting for Nook to show up...
-You can go ahead an plug the Nook in now.
+You can go ahead and plug the Nook in now.
 Any time, jerk.
 Why don't you plug in the Nook?
 I'm not sure what you're waiting for, but I'm waiting for you.
