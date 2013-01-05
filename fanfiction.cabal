@@ -8,18 +8,7 @@ build-type: Simple
 cabal-version: >=1.8
 
 executable ff
- main-is: TagTool.hs
- build-depends: attoparsec, base, bytestring, directory, deepseq, cairo, explicit-exception, HDBC, HDBC-postgresql, HDBC-sqlite3, HTTP, iconv, network, old-locale, pango, regex-posix, safe, strict-concurrency, tagsoup, temporary, text, time, transformers, unix, utf8-string, xml, zip-archive
+ main-is: Main.hs
+ build-depends: base, cmdargs, datetime, directory, HDBC, HDBC-postgresql, HDBC-sqlite3, hxt, hxt-cache, hxt-http, regex-posix, unix
+ hs-source-dirs: src
  ghc-options: -threaded
- hs-source-dirs: src
-
-executable ffs
- main-is: Shell.hs
- build-depends: base, editline, HDBC, HDBC-postgresql, split
- hs-source-dirs: src
- pkgconfig-depends: libedit
-
-executable webtag
- main-is: Webtag.hs
- build-depends: base, cgi, directory, fastcgi, filepath, HDBC, HDBC-postgresql, json, mtl, split, unix
- hs-source-dirs: src

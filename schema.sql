@@ -1,24 +1,13 @@
 drop type site cascade;
 
 drop table stories cascade;
-drop table story_logs cascade;
 drop table sources cascade;
-drop table tags cascade;
-
-drop view all_tags cascade;
-drop view story_tags cascade;
-drop view unpruned_story_tags cascade;
-drop view notable_logs cascade;
 
 drop function add_story( ) cascade;
 drop function del_story( int ) cascade;
 drop function get_filename( int, text ) cascade;
 drop function add_source( int, site, text ) cascade;
 drop function add_story_source( site, text ) cascade;
-drop function add_tag( int, text ) cascade;
-drop function del_tag( int, text ) cascade;
-drop function log_success( int, text ) cascade;
-drop function log_failure( int, text ) cascade;
 
 begin;
 
@@ -28,6 +17,7 @@ create type site as enum
   ( 'fanficauthors.net'
   , 'ficsite.com'
   , 'ficwad.com'
+  , 'hpfandom.net'
   , 'hpfanficarchive.com'
   , 'patronuscharm.net'
   , 'portkey.org'
@@ -45,51 +35,12 @@ create table stories
   , primary key ( story_id )
   );
 
-create table story_logs
-  ( story_id int not null references stories on delete cascade
-  , log_time timestamp without time zone not null
-  , success boolean not null
-  , annotation text
-  );
-
-create index story_logs_story_id_log_time on story_logs ( story_id, log_time );
-create index story_logs_success_log_time on story_logs ( success, log_time );
-
 create table sources
   ( story_id int not null references stories on delete cascade
   , source site not null
   , ref text not null
   , primary key ( story_id, source )
   );
-
-create table tags
-  ( story_id int not null references stories on delete cascade
-  , tag text not null
-  , primary key ( story_id, tag )
-  );
-
-create view all_tags as
-  select tag, count(*) as uses
-  from tags
-  group by tag
-  order by uses desc, tag;
-
-create view story_tags as
-  select tags.story_id, array_agg(tags.tag) as tags
-  from tags
-  group by tags.story_id;
-
-create view unpruned_story_tags as
-  select story_tags.*
-  from story_tags
-  inner join stories using (story_id)
-  where not pruned;
-
-create view notable_logs as
-  select story_id, log_time, annotation
-  from story_logs
-  inner join stories using (story_id)
-  where not pruned and not success;
 
 create function add_story( ) returns int strict volatile as $$
   begin
@@ -101,7 +52,6 @@ create function add_story( ) returns int strict volatile as $$
 create function del_story( the_story int ) returns void strict volatile as $$
   begin
     update stories set pruned = 't' where story_id = the_story;
-    delete from tags where story_id = the_story;
   end;
   $$ language plpgsql;
 
@@ -136,32 +86,6 @@ create function add_story_source( the_source site, the_ref text ) returns int st
       perform add_source( the_story, the_source, the_ref );
     end if;
     return the_story;
-  end;
-  $$ language plpgsql;
-
-create function add_tag( the_story int, the_tag text ) returns void strict volatile as $$
-  begin
-    if not exists (select * from tags where story_id = the_story and tag = the_tag) then
-      insert into tags ( story_id, tag ) values ( the_story, the_tag );
-    end if;
-  end;
-  $$ language plpgsql;
-
-create function del_tag( the_story int, the_tag text ) returns void strict volatile as $$
-  begin
-    delete from tags where story_id = the_story and tag = the_tag;
-  end;
-  $$ language plpgsql;
-
-create function log_success( the_story int, the_annotation text ) returns void volatile as $$
-  begin
-    insert into story_logs ( story_id, log_time, success, annotation ) values ( the_story, 'now', 't', the_annotation );
-  end;
-  $$ language plpgsql;
-
-create function log_failure( the_story int, the_annotation text ) returns void volatile as $$
-  begin
-    insert into story_logs ( story_id, log_time, success, annotation ) values ( the_story, 'now', 'f', the_annotation );
   end;
   $$ language plpgsql;
 
