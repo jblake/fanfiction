@@ -149,6 +149,29 @@ nextChapterLink = single $ deepest $
   hasName "a" >>> hasAttr "href" />
   hasText (== "Next »") >>> constA ()
 
+isNonEmpty :: (ArrowChoice a, ArrowXml a) => a XmlTree XmlTree
+isNonEmpty = proc n -> do
+
+  textNodes <- listA $ deep getText -< n
+
+  let allText = concat textNodes
+
+  case allText of
+    [] -> zeroArrow -< n
+    _ -> returnA -< n
+
+hasNoWhitespace :: (ArrowChoice a, ArrowXml a) => a XmlTree XmlTree
+hasNoWhitespace = proc n -> do
+
+  textNodes <- listA $ deep getText -< n
+
+  let allText = concat textNodes
+  let whitespace = filter isSpace allText
+
+  case whitespace of
+    [] -> returnA -< n
+    _ -> zeroArrow -< n
+
 formatBody :: IOStateArrow s XmlTree XmlTree
 formatBody = proc n -> do
 
@@ -163,6 +186,10 @@ formatBody = proc n -> do
 
     -- Horizontal rules are replaced.
     , hasName "hr" >>> proc _ -> eelem "empty-line" -< ()
+
+    -- Heuristic to detect fake horizontal rules.
+    -- Specifically, I am searching for lines with style="text-align:center;" that are nonempty but contain no whitespace.
+    , hasName "p" >>> hasAttrValue "style" (== "text-align:center;") >>> isNonEmpty >>> hasNoWhitespace >>> proc _ -> eelem "empty-line" -< ()
 
     -- Markup nodes that we rewrite as a different type.
     , hasName "b" >>> listA getChildren >>> proc cs -> eelem "strong" >>> setChildren cs -<< ()
