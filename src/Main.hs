@@ -23,6 +23,7 @@ import Text.XML.HXT.Core
 import Database.Local
 import Database.MoonReader
 import Source.FanfictionNet
+import Source.HPFanficArchiveCom
 
 data RunMode
   = Add
@@ -61,6 +62,11 @@ runMode (Add {..}) = do
         return $ do
           storyID <- addStory local "fanfiction.net" ref
           putStrLn $ source ++ " -> fanfiction.net:" ++ ref ++ " -> " ++ storyID
+      , do
+        [_,_,ref] <- listToMaybe $ source =~ "^http://www\\.hpfanficarchive\\.com/stories/viewstory\\.php\\?(|.+&)sid=([0-9]+)"
+        return $ do
+          storyID <- addStory local "hpfanficarchive.com" ref
+          putStrLn $ source ++ " -> hpfanficarchive.com:" ++ ref ++ " -> " ++ storyID
       ]
 
   forM_ sources $ \source -> case addSource source of
@@ -115,6 +121,40 @@ runMode Update = do
 
         _ -> do
           putStrLn $ "Can't get info fanfiction.net:" ++ ref ++ " for " ++ storyID ++ "!"
+          processBook storyID sources
+
+    processBook storyID (("hpfanficarchive.com", ref):sources) = do
+
+      info <- runX $ infoHPFanficArchiveCom ref
+
+      case info of
+        (title,author,date):_ -> do
+
+          filename <- makeFilename local storyID $ defaultFilename storyID title author
+
+          let
+            getBook = do
+              putStrLn $ "   Fetching " ++ storyID ++ " from hpfanficarchive.com:" ++ ref
+
+              book <- runX $ fetchHPFanficArchiveCom ref >>> writeDocument [] ("books/" ++ filename)
+
+              case book of
+                [] -> do
+                  putStrLn $ "Can't fetch hpfanficarchive.com:" ++ ref ++ " for " ++ storyID ++ "!"
+                  processBook storyID sources
+                _ -> do
+                  setFileTimes ("books/" ++ filename) (fromIntegral $ toSeconds date) (fromIntegral $ toSeconds date)
+                  touchBook moon filename (title, author, date)
+
+          e <- tryIOError $ getFileStatus $ "books/" ++ filename
+          case e of
+            Right s | fromIntegral (toSeconds date) > modificationTime s -> getBook
+                    | otherwise -> return ()
+            Left e | isDoesNotExistError e -> getBook
+                   | otherwise -> ioError e
+
+        _ -> do
+          putStrLn $ "Can't get info hpfanficarchive.com:" ++ ref ++ " for " ++ storyID ++ "!"
           processBook storyID sources
 
     processBook storyID ((source, ref):sources) = do

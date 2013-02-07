@@ -9,6 +9,6 @@ cabal-version: >=1.8
 
 executable ff
  main-is: Main.hs
- build-depends: base, cmdargs, datetime, directory, HDBC, HDBC-postgresql, HDBC-sqlite3, hxt, hxt-cache, hxt-http, regex-posix, unix
+ build-depends: base, cmdargs, datetime, directory, HDBC, HDBC-postgresql, HDBC-sqlite3, hxt, hxt-cache, hxt-http, regex-posix, split, unix
  hs-source-dirs: src
  ghc-options: -threaded
