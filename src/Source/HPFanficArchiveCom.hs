@@ -183,7 +183,10 @@ formatBody = proc n -> do
     , hasName "em" >>> listA getChildren >>> proc cs -> eelem "emphasis" >>> setChildren cs -<< ()
 
     -- We have to do some special handling to break paragraphs up on <br/> nodes.
-    , hasName "p" >>> listA getChildren >>> proc cs -> catA [ eelem "p" >>> setChildren cs' | cs' <- splitWhen (\n -> XN.getName n == Just (mkName "br")) cs, not $ null cs' ] -<< ()
+    , hasName "p" >>> listA getChildren >>> proc cs -> catA [ eelem "p" >>> setChildren cs' | cs' <- splitWhen (\n -> XN.getLocalPart n == Just "br") cs, not $ null cs' ] -<< ()
+
+    -- Because we are processing bottom-up, in order for the above to work we need to pass <br/> nodes through.
+    , hasName "br" >>> proc _ -> eelem "br" -< ()
 
     -- Markup nodes that we just ditch and use the children from.
     , hasName "div" >>> getChildren
