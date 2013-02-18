@@ -4,7 +4,7 @@ set -ex
 
 ./mount.sh
 
-ssh root@zulu "while pkill com.flyersoft.moonreaderp; do sleep 1; done"
+ssh root@zulu.omgwallhack.org "while pkill com.flyersoft.moonreaderp; do sleep 1; done"
 
 time dist/build/ff/ff update
 
